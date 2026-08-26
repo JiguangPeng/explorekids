@@ -68,6 +68,39 @@ JS 通过普通 `<script>` 顺序加载（非 ES Module，因此 `file://` 双�
 ### 5. 换配色
 直接改 `styles.css` 顶部 `:root` 里的马卡龙色变量与阴影变量即可全局生效。
 
+## 自动化部署（GitHub Actions → GitHub Pages）
+
+仓库已内置 `.github/workflows/deploy.yml`：每次推送 `main` 分支，GitHub Actions 自动把站点发布到 GitHub Pages，全程免费、无需手动上传。
+
+### 一次性开通步骤
+1. 在 [github.com](https://github.com) 新建一个空仓库（**不要**勾选初始化 README）。
+2. 回到本目录，关联远程并推送：
+   ```bash
+   git remote add origin https://github.com/<你的用户名>/<仓库名>.git
+   git branch -M main
+   git push -u origin main
+   ```
+3. 打开仓库 **Settings → Pages**，把 **Source** 设为 **GitHub Actions**。
+4. 首次推送会触发自动部署；在 **Actions** 页能看到运行记录，成功后站点地址为 `https://<你的用户名>.github.io/<仓库名>/`。
+
+之后每次改动只需三行命令，页面自动更新：
+
+```bash
+git add -A
+git commit -m "描述这次改了什么"
+git push
+```
+
+### Gitee 说明
+Gitee Pages 已停服、无法用于托管；但可把 Gitee 作为国内代码镜像仓库（国内拉取/推送更快）：
+
+```bash
+git remote add gitee https://gitee.com/<用户名>/<仓库名>.git
+git push gitee main
+```
+
+真正的托管与自动化部署仍走 GitHub Actions → GitHub Pages（或 Cloudflare Pages）。
+
 ## 控制台自测
 
 打开页面后按 F12，在控制台粘贴运行：
