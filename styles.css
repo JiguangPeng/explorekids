@@ -260,12 +260,25 @@ button { font-family: inherit; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; font-size: 14px; color: var(--text-soft); }
 .field .req { color: #EE7C8B; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row.name-icon { grid-template-columns: 1fr 112px; }
 
 .clay-input, .clay-select {
   width: 100%; padding: 12px 16px; border: none; outline: none;
   border-radius: var(--radius-sm); background: var(--cream);
   color: var(--text); font: inherit; box-shadow: var(--groove);
   transition: box-shadow .2s;
+}
+/* 下拉框统一黏土风格：去掉原生箭头，换成自定义圆角箭头 */
+.clay-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B4F3F' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  padding-right: 40px;
+  cursor: pointer;
 }
 textarea.clay-input { resize: vertical; min-height: 70px; }
 .clay-input:focus, .clay-select:focus, .clay-input:focus-visible {

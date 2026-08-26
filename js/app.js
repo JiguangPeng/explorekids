@@ -22,6 +22,7 @@
   var picking = false;
   var editingId = null;
   var toastTimer = null;
+  var emojiAutoFollow = true;
 
   function $(id) { return document.getElementById(id); }
 
@@ -77,7 +78,7 @@
     renderFilterCategories();
     renderLibCategories();
     renderCategorySelect();
-    renderEmojiPicker();
+    renderEmojiSelect();
     renderSegmented();
     renderLibrary();
     bindEvents();
@@ -367,24 +368,18 @@
     if (prev) sel.value = prev;
   }
 
-  function renderEmojiPicker() {
-    var box = $('emoji-picker');
-    box.innerHTML = '';
-    EMOJIS.forEach(function (e) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = e;
-      b.onclick = function () {
-        $('f-emoji').value = e;
-        highlightEmoji(e);
-      };
-      box.appendChild(b);
+  function renderEmojiSelect(current) {
+    var sel = $('f-emoji');
+    var list = EMOJIS.slice();
+    if (current && list.indexOf(current) === -1) list.unshift(current);
+    sel.innerHTML = '';
+    list.forEach(function (e) {
+      var o = document.createElement('option');
+      o.value = e;
+      o.textContent = e;
+      sel.appendChild(o);
     });
-  }
-
-  function highlightEmoji(e) {
-    var btns = $('emoji-picker').querySelectorAll('button');
-    btns.forEach(function (b) { b.classList.toggle('selected', b.textContent === e); });
+    sel.value = current || list[0];
   }
 
   function renderSegmented() {
@@ -427,8 +422,10 @@
     renderCategorySelect();
     $('f-category').value = a ? a.categoryId : (state.settings.categories[0] ? state.settings.categories[0].id : '');
     $('f-name').value = a ? a.name : '';
-    $('f-duration').value = a ? a.durationMinutes : 20;
-    $('f-emoji').value = a ? a.emoji : '';
+    $('f-duration-min').value = a ? a.durationMinutes : 20;
+    var cat0 = categoryById($('f-category').value);
+    emojiAutoFollow = !a;
+    renderEmojiSelect(a ? a.emoji : (cat0 ? cat0.emoji : EMOJIS[0]));
     $('f-desc').value = a ? a.description : '';
     $('f-materials').value = a ? a.materials : '';
     $('f-tags').value = a ? (a.tags || []).join(', ') : '';
@@ -436,15 +433,14 @@
     setSegValue('seg-energy', a ? a.energyLevel : '适中');
     setSegValue('seg-players', a ? a.players : '独自');
     setSegValue('seg-indoor', a ? a.indoorOutdoor : '室内');
-    highlightEmoji(a && a.emoji ? a.emoji : '');
     clearShake();
     openModal('form-modal');
   }
 
   function validateForm() {
     if (!$('f-name').value.trim()) { fail($('f-name'), '请填写活动名称～'); return false; }
-    var d = Number($('f-duration').value);
-    if (!Number.isInteger(d) || d < 1 || d > 1000) { fail($('f-duration'), '请填写 1–1000 的时长（分钟）～'); return false; }
+    var d = Number($('f-duration-min').value);
+    if (!Number.isInteger(d) || d < 1 || d > 1000) { fail($('f-duration-min'), '请填写 1–1000 的时长（分钟）～'); return false; }
     return true;
   }
 
@@ -467,7 +463,7 @@
       name: $('f-name').value.trim(),
       categoryId: $('f-category').value,
       emoji: $('f-emoji').value.trim() || (cat ? cat.emoji : '🎈'),
-      durationMinutes: parseInt($('f-duration').value, 10),
+      durationMinutes: parseInt($('f-duration-min').value, 10),
       energyLevel: segValue('seg-energy'),
       players: segValue('seg-players'),
       indoorOutdoor: segValue('seg-indoor'),
@@ -643,12 +639,10 @@
 
     $('activity-form').addEventListener('submit', submitForm);
     $('f-category').addEventListener('change', function () {
-      if (!$('f-emoji').value.trim()) {
-        var c = categoryById(this.value);
-        if (c) { $('f-emoji').value = c.emoji; highlightEmoji(c.emoji); }
-      }
+      var c = categoryById(this.value);
+      if (c && emojiAutoFollow) renderEmojiSelect(c.emoji);
     });
-    $('f-emoji').addEventListener('input', function () { highlightEmoji(this.value.trim()); });
+    $('f-emoji').addEventListener('change', function () { emojiAutoFollow = false; });
 
     $('pick-btn').onclick = startPick;
     $('reroll-btn').onclick = startPick;

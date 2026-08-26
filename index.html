@@ -149,21 +149,21 @@
     </div>
     <form id="activity-form" novalidate>
       <input type="hidden" id="f-id">
-      <label class="field">名称 <span class="req">*</span>
-        <input type="text" id="f-name" class="clay-input" placeholder="例如：磁力片搭城堡" maxlength="60" required>
-      </label>
+      <div class="form-row name-icon">
+        <label class="field">名称 <span class="req">*</span>
+          <input type="text" id="f-name" class="clay-input" placeholder="例如：磁力片搭城堡" maxlength="60" required>
+        </label>
+        <label class="field">图标
+          <select id="f-emoji" class="clay-select"></select>
+        </label>
+      </div>
       <div class="form-row">
         <label class="field">类别
           <select id="f-category" class="clay-select"></select>
         </label>
         <label class="field">预估时长（分钟）<span class="req">*</span>
-          <input type="number" id="f-duration" class="clay-input" min="1" max="1000" step="1" value="20" required>
+          <input type="number" id="f-duration-min" class="clay-input" min="1" max="1000" step="1" value="20" required>
         </label>
-      </div>
-      <div class="field">
-        <span class="filter-label">图标（点选，或直接输入一个 emoji）</span>
-        <div id="emoji-picker" class="emoji-picker"></div>
-        <input type="text" id="f-emoji" class="clay-input emoji-input" maxlength="4" placeholder="例如 🏰">
       </div>
       <fieldset class="seg-group">
         <legend>精力</legend>
