@@ -22,6 +22,7 @@
   var ENERGY = ['安静', '适中', '活跃'];
   var PLAYERS = ['独自', '亲子', '多人'];
   var INDOOR = ['室内', '户外', '皆可'];
+  var SAMPLE_VERSION = 2; // 示例数据版本：升级时给老用户补全新的示例活动
 
   function genId() {
     return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
@@ -56,8 +57,7 @@
     };
   }
 
-  function sampleActivities() {
-    var t = now();
+  function baseSampleActivities(t) {
     return [
       act({ name: '磁力片搭城堡', categoryId: 'toy', emoji: '🧲', durationMinutes: 30, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '用磁力片搭一座高高的城堡，再搭一条小桥让玩具车开过去。', materials: '磁力片', tags: ['搭建', '创意'], createdAt: t }),
       act({ name: '飞行棋大战', categoryId: 'board', emoji: '🎲', durationMinutes: 25, energyLevel: '适中', players: '多人', indoorOutdoor: '室内', description: '全家轮流掷骰子，谁的棋子先全部到达终点谁就赢。', materials: '飞行棋', tags: ['桌游', '亲子'], createdAt: t }),
@@ -70,7 +70,12 @@
       act({ name: '拼图闯关', categoryId: 'toy', emoji: '🧩', durationMinutes: 25, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '从边缘开始拼，争取比上一次更快地完成。', materials: '拼图', tags: ['专注', '耐心'], createdAt: t }),
       act({ name: '猜猜我是谁', categoryId: 'board', emoji: '🕵️', durationMinutes: 15, energyLevel: '适中', players: '多人', indoorOutdoor: '室内', description: '一个人比划或描述，其他人来猜是哪种动物或物品。', materials: '无', tags: ['语言', '互动'], createdAt: t }),
       act({ name: '阳台吹泡泡', categoryId: 'outdoor', emoji: '🫧', durationMinutes: 20, energyLevel: '活跃', players: '亲子', indoorOutdoor: '户外', description: '到阳台或楼下吹泡泡，试着接住最大的那个泡泡。', materials: '泡泡水、泡泡棒', tags: ['户外', '观察'], createdAt: t }),
-      act({ name: '贴纸故事书', categoryId: 'book', emoji: '🌟', durationMinutes: 15, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '用贴纸在空白本上贴出一个小故事，再讲给爸爸妈妈听。', materials: '贴纸、空白本', tags: ['阅读', '表达'], createdAt: t }),
+      act({ name: '贴纸故事书', categoryId: 'book', emoji: '🌟', durationMinutes: 15, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '用贴纸在空白本上贴出一个小故事，再讲给爸爸妈妈听。', materials: '贴纸、空白本', tags: ['阅读', '表达'], createdAt: t })
+    ];
+  }
+
+  function newSampleActivities(t) {
+    return [
       act({ name: '积木搭小房子', categoryId: 'toy', emoji: '🧱', durationMinutes: 45, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '用积木或乐高搭一间有门有窗的小房子，再摆上小家具。', materials: '积木或乐高', tags: ['搭建', '创意'], createdAt: t }),
       act({ name: '记忆翻牌配对', categoryId: 'board', emoji: '🃏', durationMinutes: 15, energyLevel: '适中', players: '多人', indoorOutdoor: '室内', description: '把成对的卡片翻过来打乱，轮流翻开两张，找到一对就拿走。', materials: '自制卡片或扑克', tags: ['记忆', '专注'], createdAt: t }),
       act({ name: '走迷宫找不同', categoryId: 'book', emoji: '✏️', durationMinutes: 20, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '在练习册里走迷宫、找不同，挑战比上次更快完成。', materials: '迷宫或找不同练习册', tags: ['专注', '耐心'], createdAt: t }),
@@ -86,6 +91,25 @@
     ];
   }
 
+  function sampleActivities() {
+    var t = now();
+    return baseSampleActivities(t).concat(newSampleActivities(t));
+  }
+
+  /* 给老用户补全新的示例活动（按名称去重，不覆盖已有数据） */
+  function migrateSamples(state) {
+    var v = clampInt(state.settings.sampleVersion, 0, 999, 0);
+    if (v >= SAMPLE_VERSION) return 0;
+    var names = {};
+    state.activities.forEach(function (a) { names[a.name] = true; });
+    var added = 0;
+    newSampleActivities(now()).forEach(function (a) {
+      if (!names[a.name]) { state.activities.push(a); added++; }
+    });
+    state.settings.sampleVersion = SAMPLE_VERSION;
+    return added;
+  }
+
   /* ------------------------------------------------------------------ 默认状态 */
   function defaultCategories() {
     return DEFAULT_CATEGORIES.map(function (c) {
@@ -99,7 +123,8 @@
       settings: {
         userName: '派派',
         avoidRecentCount: 3,
-        categories: defaultCategories()
+        categories: defaultCategories(),
+        sampleVersion: SAMPLE_VERSION
       },
       activities: sampleActivities()
     };
@@ -154,7 +179,8 @@
       settings: {
         userName: (data.settings && typeof data.settings.userName === 'string') ? data.settings.userName : base.settings.userName,
         avoidRecentCount: clampInt(data.settings && data.settings.avoidRecentCount, 1, 10, 3),
-        categories: cats
+        categories: cats,
+        sampleVersion: clampInt(data.settings && data.settings.sampleVersion, 0, 999, 0)
       },
       activities: []
     };
@@ -194,7 +220,9 @@
       return { state: fresh, inMemory: false, corrupt: false };
     }
     try {
-      return { state: normalizeState(JSON.parse(raw)), inMemory: false, corrupt: false };
+      var st = normalizeState(JSON.parse(raw));
+      if (migrateSamples(st) > 0) { try { saveState(st); } catch (e0) {} }
+      return { state: st, inMemory: false, corrupt: false };
     } catch (e) {
       try { localStorage.setItem(KEY + '.corrupt', raw || ''); } catch (e2) {}
       var s = defaultState();

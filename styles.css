@@ -268,8 +268,8 @@ button { font-family: inherit; }
 .field .req { color: #EE7C8B; }
 .field > input, .field > select, .field > textarea { display: block; margin-top: 6px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-row.name-icon { display: flex; align-items: flex-end; gap: 10px; }
-.form-row.name-icon .name-field { flex: 1; margin-bottom: 0; }
+.form-row.name-icon { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.form-row.name-icon > .clay-input { flex: 1 1 0; min-width: 0; }
 .emoji-pick { position: relative; }
 .emoji-trigger {
   width: 52px; height: 48px; border: none; cursor: pointer; flex: 0 0 auto;
