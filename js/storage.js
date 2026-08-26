@@ -70,7 +70,19 @@
       act({ name: '拼图闯关', categoryId: 'toy', emoji: '🧩', durationMinutes: 25, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '从边缘开始拼，争取比上一次更快地完成。', materials: '拼图', tags: ['专注', '耐心'], createdAt: t }),
       act({ name: '猜猜我是谁', categoryId: 'board', emoji: '🕵️', durationMinutes: 15, energyLevel: '适中', players: '多人', indoorOutdoor: '室内', description: '一个人比划或描述，其他人来猜是哪种动物或物品。', materials: '无', tags: ['语言', '互动'], createdAt: t }),
       act({ name: '阳台吹泡泡', categoryId: 'outdoor', emoji: '🫧', durationMinutes: 20, energyLevel: '活跃', players: '亲子', indoorOutdoor: '户外', description: '到阳台或楼下吹泡泡，试着接住最大的那个泡泡。', materials: '泡泡水、泡泡棒', tags: ['户外', '观察'], createdAt: t }),
-      act({ name: '贴纸故事书', categoryId: 'book', emoji: '🌟', durationMinutes: 15, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '用贴纸在空白本上贴出一个小故事，再讲给爸爸妈妈听。', materials: '贴纸、空白本', tags: ['阅读', '表达'], createdAt: t })
+      act({ name: '贴纸故事书', categoryId: 'book', emoji: '🌟', durationMinutes: 15, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '用贴纸在空白本上贴出一个小故事，再讲给爸爸妈妈听。', materials: '贴纸、空白本', tags: ['阅读', '表达'], createdAt: t }),
+      act({ name: '积木搭小房子', categoryId: 'toy', emoji: '🧱', durationMinutes: 45, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '用积木或乐高搭一间有门有窗的小房子，再摆上小家具。', materials: '积木或乐高', tags: ['搭建', '创意'], createdAt: t }),
+      act({ name: '记忆翻牌配对', categoryId: 'board', emoji: '🃏', durationMinutes: 15, energyLevel: '适中', players: '多人', indoorOutdoor: '室内', description: '把成对的卡片翻过来打乱，轮流翻开两张，找到一对就拿走。', materials: '自制卡片或扑克', tags: ['记忆', '专注'], createdAt: t }),
+      act({ name: '走迷宫找不同', categoryId: 'book', emoji: '✏️', durationMinutes: 20, energyLevel: '安静', players: '独自', indoorOutdoor: '室内', description: '在练习册里走迷宫、找不同，挑战比上次更快完成。', materials: '迷宫或找不同练习册', tags: ['专注', '耐心'], createdAt: t }),
+      act({ name: '折纸飞机比赛', categoryId: 'craft', emoji: '✈️', durationMinutes: 20, energyLevel: '活跃', players: '亲子', indoorOutdoor: '室内', description: '每人折一架纸飞机，比赛谁的飞得最远、飞得最稳。', materials: '彩纸', tags: ['手工', '运动'], createdAt: t }),
+      act({ name: '手指画涂鸦', categoryId: 'craft', emoji: '🎨', durationMinutes: 25, energyLevel: '适中', players: '独自', indoorOutdoor: '室内', description: '用手指沾颜料在纸上画画，尽情涂出大色块和小动物。', materials: '颜料、大张纸', tags: ['手工', '创意'], createdAt: t }),
+      act({ name: '过家家开餐厅', categoryId: 'play', emoji: '🍳', durationMinutes: 40, energyLevel: '适中', players: '亲子', indoorOutdoor: '室内', description: '扮演小厨师和顾客，做一顿「假装大餐」，还要写菜单、结账。', materials: '玩具餐具、围裙', tags: ['角色扮演', '表达'], createdAt: t }),
+      act({ name: '客厅音乐会', categoryId: 'play', emoji: '🎤', durationMinutes: 20, energyLevel: '活跃', players: '多人', indoorOutdoor: '室内', description: '放喜欢的音乐，自由唱歌跳舞，轮流当小主持人报幕。', materials: '音乐播放器', tags: ['音乐', '运动'], createdAt: t }),
+      act({ name: '数字口算接龙', categoryId: 'board', emoji: '🔢', durationMinutes: 15, energyLevel: '适中', players: '亲子', indoorOutdoor: '室内', description: '说一个数字，轮流加减，看谁能又快又准地说出答案。', materials: '无', tags: ['数学', '亲子'], createdAt: t }),
+      act({ name: '拍皮球跳绳挑战', categoryId: 'outdoor', emoji: '⚽', durationMinutes: 20, energyLevel: '活跃', players: '独自', indoorOutdoor: '户外', description: '到楼下或阳台拍皮球、跳绳，记录今天连续最多能几个。', materials: '皮球或跳绳', tags: ['户外', '运动'], createdAt: t }),
+      act({ name: '种绿豆观察发芽', categoryId: 'other', emoji: '🌱', durationMinutes: 10, energyLevel: '安静', players: '亲子', indoorOutdoor: '室内', description: '把绿豆泡在水里，每天观察它发芽，画下每天的变化。', materials: '绿豆、纸巾、杯子', tags: ['观察', '自然'], createdAt: t }),
+      act({ name: '袜子配对收纳赛', categoryId: 'other', emoji: '🧦', durationMinutes: 10, energyLevel: '活跃', players: '亲子', indoorOutdoor: '室内', description: '把洗好的袜子配对叠好，比谁找得快、叠得整齐。', materials: '干净袜子', tags: ['收纳', '游戏'], createdAt: t }),
+      act({ name: '水果拼盘小厨师', categoryId: 'other', emoji: '🍓', durationMinutes: 20, energyLevel: '适中', players: '亲子', indoorOutdoor: '室内', description: '一起洗水果、切块、摆出漂亮的拼盘（记得用安全刀）。', materials: '水果、安全刀、盘子', tags: ['动手', '亲子'], createdAt: t })
     ];
   }
 
@@ -85,7 +97,7 @@
     return {
       schemaVersion: 1,
       settings: {
-        userName: '小朋友',
+        userName: '派派',
         avoidRecentCount: 3,
         categories: defaultCategories()
       },
@@ -121,7 +133,7 @@
       emoji: a.emoji ? String(a.emoji).slice(0, 4) : cat.emoji,
       description: String(a.description || ''),
       materials: String(a.materials || ''),
-      durationMinutes: clampInt(a.durationMinutes, 1, 1000, 20),
+      durationMinutes: (a.durationMinutes == null || a.durationMinutes === '') ? null : clampInt(a.durationMinutes, 1, 1000, 20),
       energyLevel: ENERGY.indexOf(a.energyLevel) !== -1 ? a.energyLevel : '适中',
       players: PLAYERS.indexOf(a.players) !== -1 ? a.players : '独自',
       indoorOutdoor: INDOOR.indexOf(a.indoorOutdoor) !== -1 ? a.indoorOutdoor : '室内',

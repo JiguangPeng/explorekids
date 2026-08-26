@@ -20,7 +20,6 @@
     <button class="tab" data-view="library">📦 活动库</button>
   </nav>
   <div class="topbar-actions">
-    <button class="clay-btn small primary" id="open-form">➕ 添加活动</button>
     <button class="icon-btn" id="open-settings" title="设置">⚙️</button>
   </div>
 </header>
@@ -121,6 +120,7 @@
 
   <!-- ============ 活动库 / 管理视图 ============ -->
   <section id="view-library" class="view">
+    <button class="clay-btn primary lib-add-btn" id="open-form">➕ 添加活动</button>
     <div class="stats" id="stats"></div>
     <div class="library-tools">
       <input type="search" id="search" class="clay-input grow" placeholder="🔍 搜索活动...">
@@ -150,19 +150,20 @@
     <form id="activity-form" novalidate>
       <input type="hidden" id="f-id">
       <div class="form-row name-icon">
-        <label class="field">名称 <span class="req">*</span>
+        <div class="emoji-pick">
+          <button type="button" id="emoji-trigger" class="emoji-trigger" title="选择图标">🧸</button>
+          <div id="emoji-pop" class="emoji-pop" hidden></div>
+        </div>
+        <label class="field name-field">名称 <span class="req">*</span>
           <input type="text" id="f-name" class="clay-input" placeholder="例如：磁力片搭城堡" maxlength="60" required>
-        </label>
-        <label class="field">图标
-          <select id="f-emoji" class="clay-select"></select>
         </label>
       </div>
       <div class="form-row">
         <label class="field">类别
           <select id="f-category" class="clay-select"></select>
         </label>
-        <label class="field">预估时长（分钟）<span class="req">*</span>
-          <input type="number" id="f-duration-min" class="clay-input" min="1" max="1000" step="1" value="20" required>
+        <label class="field">时长（分钟）
+          <input type="number" id="f-duration-min" class="clay-input" min="1" max="1000" step="1" placeholder="选填">
         </label>
       </div>
       <fieldset class="seg-group">
@@ -207,7 +208,7 @@
     </div>
     <div class="settings-body">
       <label class="field">我的名字
-        <input type="text" id="s-name" class="clay-input" placeholder="小朋友">
+        <input type="text" id="s-name" class="clay-input" placeholder="派派">
       </label>
       <label class="field">连续推荐时避开最近几个（1–10）
         <input type="number" id="s-avoid" class="clay-input" min="1" max="10" step="1">

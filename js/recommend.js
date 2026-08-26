@@ -30,7 +30,8 @@
       if (options.indoorOutdoor && options.indoorOutdoor !== '皆可' &&
           a.indoorOutdoor !== options.indoorOutdoor && a.indoorOutdoor !== '皆可') return false;
       if (options.duration) {
-        var d = a.durationMinutes || 0;
+        if (a.durationMinutes == null) return false; // 未设置时长的活动不参与时长筛选
+        var d = a.durationMinutes;
         if (options.duration === 'short' && d > DURATION.short) return false;
         if (options.duration === 'medium' && (d <= DURATION.short || d > DURATION.medium)) return false;
         if (options.duration === 'long' && d <= DURATION.medium) return false;
