@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+# 每次推送到 main 分支，或手动触发时，自动把站点发布到 GitHub Pages
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+# GitHub Pages 部署所需的最小权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只保留一次部署，避免并发冲突
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 本项目零构建：直接把静态文件收集到 _site 目录
+      # 以后若加了构建步骤（如压缩、打包），把产物输出到 _site 即可
+      - name: Prepare site
+        run: |
+          mkdir -p _site
+          cp index.html styles.css _site/
+          cp -r js _site/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
