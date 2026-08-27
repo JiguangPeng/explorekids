@@ -24,6 +24,7 @@
   var toastTimer = null;
   var emojiAutoFollow = true;
   var selectedEmoji = '🧸';
+  var currentResult = null;
 
   function $(id) { return document.getElementById(id); }
 
@@ -54,6 +55,27 @@
   }
   function durationText(a) {
     return (a.durationMinutes == null) ? '时长不限' : (a.durationMinutes + ' 分钟');
+  }
+
+  /* ================= 语音播报 ================= */
+  function speak(text) {
+    try {
+      if (!('speechSynthesis' in window)) return;
+      if (!state.settings.voiceEnabled) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'zh-CN';
+      u.rate = 0.95;
+      u.pitch = 1.05;
+      var voices = window.speechSynthesis.getVoices();
+      for (var i = 0; i < voices.length; i++) {
+        if (/zh|cmn|Chinese/i.test(voices[i].lang)) { u.voice = voices[i]; break; }
+      }
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  function speakResult(a) {
+    speak((state.settings.userName || '派派') + '，我们来玩——' + a.name + '！');
   }
   function shuffle(arr) {
     for (var i = arr.length - 1; i > 0; i--) {
@@ -87,6 +109,8 @@
     renderLibrary();
     bindEvents();
     showView('recommend');
+    registerSW();
+    if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
   }
 
   /* ================= 提示条 / 提示 ================= */
@@ -103,13 +127,25 @@
     }
   }
 
-  function toast(msg) {
+  function toast(msg, actionLabel, actionCb) {
     var t = $('toast');
-    t.textContent = msg;
+    t.innerHTML = '';
+    var span = document.createElement('span');
+    span.textContent = msg;
+    t.appendChild(span);
+    if (actionLabel && actionCb) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'toast-action';
+      b.textContent = actionLabel;
+      b.onclick = function () { hideToast(); actionCb(); };
+      t.appendChild(b);
+    }
     t.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.hidden = true; }, 2400);
+    toastTimer = setTimeout(hideToast, actionLabel ? 6000 : 2400);
   }
+  function hideToast() { $('toast').hidden = true; }
 
   /* ================= 视图切换 ================= */
   function showView(name) {
@@ -217,6 +253,7 @@
       showResult(result, cat);
       card.classList.add('jelly');
       confetti();
+      speakResult(result);
       picking = false;
       $('pick-btn').disabled = false;
       $('reroll-btn').disabled = false;
@@ -224,6 +261,7 @@
   }
 
   function showResult(a, cat) {
+    currentResult = a;
     $('result-emoji').textContent = a.emoji || '🎉';
     $('result-name').textContent = a.name;
     $('result-meta').innerHTML =
@@ -286,6 +324,24 @@
     box.innerHTML = html;
   }
 
+  function renderRecent() {
+    var box = $('recent-plays');
+    var list = $('recent-list');
+    var played = state.activities.filter(function (a) { return a.lastPlayedAt != null; })
+      .sort(function (a, b) { return (b.lastPlayedAt || 0) - (a.lastPlayedAt || 0); })
+      .slice(0, 8);
+    if (!played.length) { box.hidden = true; list.innerHTML = ''; return; }
+    box.hidden = false;
+    list.innerHTML = '';
+    played.forEach(function (a) {
+      var chip = document.createElement('span');
+      chip.className = 'recent-chip';
+      chip.textContent = a.emoji + ' ' + a.name + (a.playCount > 1 ? ' ×' + a.playCount : '');
+      chip.title = '最近玩过「' + a.name + '」共 ' + a.playCount + ' 次';
+      list.appendChild(chip);
+    });
+  }
+
   function renderLibrary() {
     var q = $('search').value.trim().toLowerCase();
     var sortBy = $('sort').value;
@@ -307,6 +363,7 @@
     else list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
 
     renderStats();
+    renderRecent();
 
     var grid = $('activity-grid');
     grid.innerHTML = '';
@@ -336,6 +393,7 @@
         '<span class="badge" style="background:' + esc(cat.color) + '">' + esc(cat.emoji) + ' ' + esc(cat.name) + '</span>' +
         '<div class="card-meta">' +
           '<span>⏱️ ' + durationText(a) + '</span>' +
+          (a.playCount > 0 ? '<span>▶ 玩过 ' + a.playCount + ' 次</span>' : '') +
           '<span>' + energyEmoji(a.energyLevel) + ' ' + a.energyLevel + '</span>' +
           '<span>' + playersEmoji(a.players) + ' ' + a.players + '</span>' +
           '<span>' + indoorEmoji(a.indoorOutdoor) + ' ' + a.indoorOutdoor + '</span>' +
@@ -526,11 +584,17 @@
 
   /* ================= 删除确认 ================= */
   function confirmDelete(a) {
-    showConfirm('删除活动', '确定删除「' + a.name + '」吗？删掉后不可恢复。', function () {
-      state.activities = state.activities.filter(function (x) { return x.id !== a.id; });
+    var idx = state.activities.indexOf(a);
+    showConfirm('删除活动', '确定删除「' + a.name + '」吗？', function () {
+      state.activities.splice(idx, 1);
       save();
       renderLibrary();
-      toast('🗑️ 已删除');
+      toast('🗑️ 已删除「' + a.name + '」', '撤销', function () {
+        state.activities.splice(Math.min(idx, state.activities.length), 0, a);
+        save();
+        renderLibrary();
+        toast('✅ 已恢复「' + a.name + '」');
+      });
     });
   }
 
@@ -546,6 +610,8 @@
   function openSettings() {
     $('s-name').value = state.settings.userName;
     $('s-avoid').value = state.settings.avoidRecentCount;
+    $('s-voice').checked = !!state.settings.voiceEnabled;
+    $('s-voice').closest('.voice-check').classList.toggle('active', !!state.settings.voiceEnabled);
     renderCategoryList();
     openModal('settings-modal');
   }
@@ -620,6 +686,7 @@
     state.settings.userName = name;
     state.settings.avoidRecentCount = avoid;
     state.settings.categories = cats;
+    state.settings.voiceEnabled = !!$('s-voice').checked;
     save();
     closeModal('settings-modal');
     refreshAfterCategoryChange();
@@ -653,6 +720,15 @@
   function openModal(id) { $(id).hidden = false; }
   function closeModal(id) { $(id).hidden = true; }
 
+  /* ================= PWA ================= */
+  function registerSW() {
+    if (!('serviceWorker' in navigator)) return;
+    if (location.protocol !== 'https:' && location.protocol !== 'http:') return;
+    try {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    } catch (e) {}
+  }
+
   /* ================= 事件绑定 ================= */
   function bindEvents() {
     document.querySelectorAll('.tab').forEach(function (t) {
@@ -684,7 +760,18 @@
 
     $('pick-btn').onclick = startPick;
     $('reroll-btn').onclick = startPick;
-    $('confirm-btn').onclick = function () { confetti(); toast('🎉 玩得开心～'); };
+    $('confirm-btn').onclick = function () {
+      if (currentResult) {
+        currentResult.lastPlayedAt = S.now();
+        currentResult.playCount = (currentResult.playCount || 0) + 1;
+        currentResult.updatedAt = S.now();
+        save();
+        renderLibrary();
+      }
+      confetti();
+      speak('玩得开心～');
+      toast('🎉 玩得开心～');
+    };
 
     $('toggle-filters').onclick = function () { $('filter-panel').hidden = !$('filter-panel').hidden; };
     $('clear-filters').onclick = clearFilters;
@@ -701,6 +788,9 @@
       renderCategoryList();
     };
     $('save-settings').onclick = saveSettings;
+    $('s-voice').addEventListener('change', function () {
+      this.closest('.voice-check').classList.toggle('active', this.checked);
+    });
     $('export-btn').onclick = function () { S.exportJSON(state); toast('📤 已导出备份'); };
     $('import-btn').onclick = function () { $('import-file').click(); };
     $('import-file').addEventListener('change', importFile);

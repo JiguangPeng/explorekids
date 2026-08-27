@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎲 游戏决策机 · 今天玩什么</title>
 <meta name="description" content="为小朋友录下家里好玩的事，点一下大按钮，随机推荐一件来做。">
+<meta name="theme-color" content="#FFB6A3">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="游戏决策机">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -122,6 +128,10 @@
   <section id="view-library" class="view">
     <button class="clay-btn primary lib-add-btn" id="open-form">➕ 添加活动</button>
     <div class="stats" id="stats"></div>
+    <div id="recent-plays" class="recent-plays" hidden>
+      <div class="recent-title">🕘 最近玩过</div>
+      <div id="recent-list" class="recent-list"></div>
+    </div>
     <div class="library-tools">
       <input type="search" id="search" class="clay-input grow" placeholder="🔍 搜索活动...">
       <select id="sort" class="clay-select" style="max-width: 130px;">
@@ -210,6 +220,10 @@
       </label>
       <label class="field">连续推荐时避开最近几个（1–10）
         <input type="number" id="s-avoid" class="clay-input" min="1" max="10" step="1">
+      </label>
+      <label class="clay-chip voice-check">
+        <input type="checkbox" id="s-voice">
+        <span>🔊 语音播报结果</span>
       </label>
       <div class="field">
         <span class="filter-label">类别管理</span>

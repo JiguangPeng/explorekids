@@ -52,6 +52,8 @@
       favorite: !!o.favorite,
       lastPickedAt: null,
       pickCount: 0,
+      lastPlayedAt: null,
+      playCount: 0,
       createdAt: o.createdAt || now(),
       updatedAt: o.updatedAt || now()
     };
@@ -124,7 +126,8 @@
         userName: '派派',
         avoidRecentCount: 3,
         categories: defaultCategories(),
-        sampleVersion: SAMPLE_VERSION
+        sampleVersion: SAMPLE_VERSION,
+        voiceEnabled: true
       },
       activities: sampleActivities()
     };
@@ -166,6 +169,8 @@
       favorite: !!a.favorite,
       lastPickedAt: (typeof a.lastPickedAt === 'number') ? a.lastPickedAt : null,
       pickCount: clampInt(a.pickCount, 0, 1000000, 0),
+      lastPlayedAt: (typeof a.lastPlayedAt === 'number') ? a.lastPlayedAt : null,
+      playCount: clampInt(a.playCount, 0, 1000000, 0),
       createdAt: (typeof a.createdAt === 'number') ? a.createdAt : now(),
       updatedAt: (typeof a.updatedAt === 'number') ? a.updatedAt : now()
     };
@@ -180,7 +185,8 @@
         userName: (data.settings && typeof data.settings.userName === 'string') ? data.settings.userName : base.settings.userName,
         avoidRecentCount: clampInt(data.settings && data.settings.avoidRecentCount, 1, 10, 3),
         categories: cats,
-        sampleVersion: clampInt(data.settings && data.settings.sampleVersion, 0, 999, 0)
+        sampleVersion: clampInt(data.settings && data.settings.sampleVersion, 0, 999, 0),
+        voiceEnabled: (data.settings && typeof data.settings.voiceEnabled === 'boolean') ? data.settings.voiceEnabled : true
       },
       activities: []
     };
