@@ -398,6 +398,7 @@ textarea.clay-input { resize: vertical; min-height: 70px; }
   max-width: 88vw; text-align: center; animation: toast-in .3s var(--spring);
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
 }
+.toast[hidden] { display: none; }
 .toast-action {
   border: none; cursor: pointer; padding: 6px 14px; border-radius: 999px;
   font: inherit; font-weight: 700; color: var(--text); background: var(--butter);
