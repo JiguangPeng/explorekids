@@ -1,825 +1,107 @@
-/* ==========================================================================
-   主控制器 · app.js
-   渲染、表单、增删改查、类别管理、推荐交互与动画、视图切换
-   依赖：storage.js、recommend.js（均挂载在 window.GamePicker）
-   ========================================================================== */
+/* 主控制器：双语界面、双语活动库、推荐、语音与 PWA 提示 */
 (function () {
   'use strict';
   var S = window.GamePicker.storage;
   var R = window.GamePicker.recommend;
-
-  var ENERGY = [ { v: '安静', e: '😌' }, { v: '适中', e: '🙂' }, { v: '活跃', e: '🤸' } ];
-  var PLAYERS = [ { v: '独自', e: '🙋' }, { v: '亲子', e: '💞' }, { v: '多人', e: '👪' } ];
-  var INDOOR = [ { v: '室内', e: '🏠' }, { v: '户外', e: '🌳' }, { v: '皆可', e: '🌈' } ];
-  var EMOJIS = ['🧸','🎲','📚','✂️','🎯','🌳','🎈','🧩','🪵','🫧','🎭','🗺️','🏃','🕵️','📖','🖍️','🎨','🧱','🚗','🪁','🎪','🎵','🍪','🐣','🦄','⚽','🧁','🌟'];
-
-  var state = null;
-  var inMemory = false;
-  var corrupt = false;
-  var selectedFilterCategories = {}; // {id: true}
-  var selectedLibCategory = null;
-  var confirmCallback = null;
-  var picking = false;
-  var editingId = null;
-  var toastTimer = null;
-  var emojiAutoFollow = true;
-  var selectedEmoji = '🧸';
-  var currentResult = null;
-
+  var EMOJIS = ['📚','🔢','📺','🗣️','🔬','🧲','🦁','🧩','🏠','🐷','🔐','🔷','🎲','🐘','🃏','🐼','🦒','📖','🔤','🎭','🐣','✈️','✂️','🎨','🎤','🩺','🤸','🧗','💪','🏊','🧸','🎈'];
+  var SVG_ICONS = {
+    literacy: 'assets/icons/literacy.svg',
+    'english-learning': 'assets/icons/english-learning.svg',
+    'lego-animal-park': 'assets/icons/lego-animal-park.svg',
+    'building-blocks': 'assets/icons/building-blocks.svg',
+    'three-little-pigs': 'assets/icons/three-little-pigs.svg',
+    'paper-airplane': 'assets/icons/paper-airplane.svg',
+    trampoline: 'assets/icons/trampoline.svg',
+    'pull-up-bar': 'assets/icons/pull-up-bar.svg',
+    'sit-ups': 'assets/icons/sit-ups.svg'
+  };
+  var T = {
+    'zh-CN': {
+      logo:'游戏决策机', recommend:'推荐', library:'活动库', greeting:'今天玩什么呀，{name}？', subtitle:'点一下大按钮，帮你挑一件好玩的事～', start:'开始', pickSub:'点我抽一个', filter:'筛选', random:'纯随机', category:'类别', clear:'清除筛选', reroll:'换一个', confirm:'就玩这个！', add:'添加活动', search:'🔍 搜索活动...', sortRecent:'最近添加', sortName:'按名称', sortFavorite:'最爱优先', noMatch:'没有符合条件的活动，试试放宽筛选～', noActivities:'还没有活动，点「添加活动」录入第一件吧～', noSearch:'没有找到匹配的活动，换个关键词或类别试试～', played:'玩过 {n} 次', materials:'材料：', edit:'编辑活动', addTitle:'添加活动', nameZh:'中文名称', nameEn:'English name', categoryLabel:'类别', descZh:'玩法说明', descEn:'English instructions', matZh:'需要的材料', matEn:'English materials', favorite:'加入最爱', cancel:'取消', save:'保存', settings:'设置', myName:'我的名字', avoid:'连续推荐时避开最近几个（1–10）', voice:'语音播报结果', language:'语言 / Language', voiceTest:'试听当前语言', installTitle:'添加到桌面', installNote:'请使用 http:// 或 https:// 网址访问；直接打开 file:// 文件不能完整安装。', ios:'iPhone / iPad Safari', android:'Android Chrome', close:'关闭', confirmPlay:'玩得开心～', deleted:'已删除「{name}」', restored:'已恢复「{name}」', saved:'设置已保存', added:'新增成功！', edited:'已保存修改～', emptyPick:'还没有活动，点右上角「添加活动」录入一件吧～', importOk:'导入成功，共 {n} 个活动', invalid:'文件格式不正确：缺少 activities 列表', voiceUnavailable:'当前浏览器不支持语音播报。', builtin:'内置活动', custom:'自定义活动'
+    },
+    'en-US': {
+      logo:'Game Picker', recommend:'Recommend', library:'Library', greeting:'What shall we do today, {name}?', subtitle:'Tap the big button and pick something fun～', start:'Start', pickSub:'Pick one for me', filter:'Filter', random:'Pure random', category:'Category', clear:'Clear filters', reroll:'Try another', confirm:"Let's do it!", add:'Add activity', search:'🔍 Search activities...', sortRecent:'Recently added', sortName:'By name', sortFavorite:'Favorites first', noMatch:'Nothing matches these filters. Try widening them～', noActivities:'No activities yet. Add the first one～', noSearch:'No matching activity. Try another word or category～', played:'Played {n} times', materials:'Materials: ', edit:'Edit activity', addTitle:'Add activity', nameZh:'Chinese name', nameEn:'English name', categoryLabel:'Category', descZh:'Chinese instructions', descEn:'English instructions', matZh:'Chinese materials', matEn:'English materials', favorite:'Add to favorites', cancel:'Cancel', save:'Save', settings:'Settings', myName:'My name', avoid:'Avoid the most recent picks (1–10)', voice:'Read results aloud', language:'语言 / Language', voiceTest:'Test current language', installTitle:'Add to Home Screen', installNote:'Open the app from an http:// or https:// URL. A file:// page cannot be installed as a full app.', ios:'iPhone / iPad Safari', android:'Android Chrome', close:'Close', confirmPlay:'Have fun～', deleted:'Deleted “{name}”', restored:'Restored “{name}”', saved:'Settings saved', added:'Activity added!', edited:'Changes saved～', emptyPick:'No activities yet. Use the Add button to create one～', importOk:'Imported {n} activities', invalid:'Invalid file: activities list is missing', voiceUnavailable:'This browser does not support speech playback.', builtin:'Built-in', custom:'Custom'
+    }
+  };
+  var state = null, inMemory = false, corrupt = false, selectedFilterCategories = {}, selectedLibCategory = null, confirmCallback = null, picking = false, editingId = null, toastTimer = null, emojiAutoFollow = true, selectedEmoji = '🧸', selectedIconType = 'emoji', selectedIconKey = '', currentResult = null, voices = [];
   function $(id) { return document.getElementById(id); }
+  function lang() { return state && state.settings.language === 'en-US' ? 'en-US' : 'zh-CN'; }
+  function t(key) { return (T[lang()][key] || T['zh-CN'][key] || key); }
+  function fmt(s, value) { return String(s).replace(/\{\w+\}/, value); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  function catName(c) { return c ? (lang() === 'en-US' ? c.nameEn : c.nameZh) : ''; }
+  function activityName(a) { return lang() === 'en-US' ? (a.nameEn || a.nameZh) : (a.nameZh || a.nameEn); }
+  function activityDesc(a) { return lang() === 'en-US' ? (a.descriptionEn || a.descriptionZh) : (a.descriptionZh || a.descriptionEn); }
+  function activityMaterials(a) { return lang() === 'en-US' ? (a.materialsEn || a.materialsZh) : (a.materialsZh || a.materialsEn); }
+  function activityIconFallback(a) { return a && a.emoji ? a.emoji : '🎈'; }
+  function appendActivityIcon(container, a) {
+    if (!container) return;
+    container.innerHTML = '';
+    if (a && a.iconType === 'svg' && a.iconKey && SVG_ICONS[a.iconKey]) {
+      var img = document.createElement('img');
+      img.className = 'activity-icon-svg';
+      img.src = SVG_ICONS[a.iconKey];
+      img.alt = activityName(a);
+      img.loading = 'lazy';
+      img.onerror = function () { container.textContent = activityIconFallback(a); };
+      container.appendChild(img);
+    } else container.textContent = activityIconFallback(a);
+  }
+  function iconHtml(a) { return '<div class="activity-icon-slot"></div>'; }
+  function sourceLabel(a) { return a && a.source === 'builtin' ? t('builtin') : t('custom'); }
+  function categoryById(id) { return state.settings.categories.find(function (c) { return c.id === id; }) || state.settings.categories[0]; }
+  function activityById(id) { return state.activities.find(function (a) { return a.id === id; }) || null; }
+  function save() { var ok = S.saveState(state); inMemory = !ok; renderBanner(); return ok; }
 
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
+  function applyI18n() {
+    if (state) S.saveState(state);
+    document.documentElement.lang = lang();
+    document.querySelectorAll('.modal-close').forEach(function (b) { b.setAttribute('aria-label', t('close')); });
+    $('open-settings').setAttribute('title', t('settings')); $('open-settings').setAttribute('aria-label', t('settings')); $('pick-btn').setAttribute('aria-label', lang() === 'en-US' ? 'Start picking' : '开始抽取'); $('f-name').setAttribute('aria-label', t('nameZh'));
+    $('logo-text').textContent = t('logo'); $('tab-recommend').textContent = '🎲 ' + t('recommend'); $('tab-library').textContent = '📦 ' + t('library');
+    $('greeting-subtitle').textContent = t('subtitle'); $('pick-main').textContent = t('start'); $('pick-sub').textContent = t('pickSub'); $('filter-label').textContent = t('filter'); $('category-label').textContent = t('category');
+    $('pure-random').nextElementSibling.textContent = '🎲 ' + t('random'); $('clear-filters').textContent = t('clear'); $('clear-filters-2').textContent = t('clear'); $('reroll-btn').textContent = '🔄 ' + t('reroll'); $('confirm-btn').textContent = '👍 ' + t('confirm');
+    $('open-form').textContent = '➕ ' + t('add'); $('search').placeholder = t('search'); $('sort-recent').textContent = t('sortRecent'); $('sort-name').textContent = t('sortName'); $('sort-favorite').textContent = t('sortFavorite');
+    $('form-category-label').textContent = t('categoryLabel'); $('form-name-en-label').textContent = t('nameEn'); $('form-desc-zh-label').textContent = t('descZh'); $('form-desc-en-label').textContent = t('descEn'); $('form-materials-zh-label').textContent = t('matZh'); $('form-materials-en-label').textContent = t('matEn'); $('f-name').placeholder = t('nameZh'); $('f-name-en').placeholder = t('nameEn'); $('f-desc').placeholder = t('descZh'); $('f-desc-en').placeholder = t('descEn'); $('f-materials').placeholder = t('matZh'); $('f-materials-en').placeholder = t('matEn'); $('settings-name-label').textContent = t('myName'); $('settings-avoid-label').textContent = t('avoid'); $('settings-voice-label').textContent = '🔊 ' + t('voice'); $('settings-language-label').textContent = t('language'); $('voice-test').textContent = '🔊 ' + t('voiceTest'); $('install-title').textContent = '📱 ' + t('installTitle'); $('install-note').textContent = t('installNote'); $('install-ios-summary').textContent = t('ios'); $('install-android-summary').textContent = t('android'); $('form-favorite-label').textContent = '⭐ ' + t('favorite'); $('form-cancel').textContent = t('cancel'); $('form-save').textContent = '💾 ' + t('save'); $('settings-title').textContent = '⚙️ ' + t('settings'); $('settings-cancel').textContent = t('cancel'); $('save-settings').textContent = '💾 ' + t('save'); $('export-btn').textContent = lang() === 'en-US' ? '📤 Export backup' : '📤 导出备份'; $('import-btn').textContent = lang() === 'en-US' ? '📥 Import backup' : '📥 导入备份'; $('reset-sample').textContent = lang() === 'en-US' ? '🧪 Restore sample library' : '🧪 恢复示例数据'; $('clear-all').textContent = lang() === 'en-US' ? '🗑️ Clear all activities' : '🗑️ 清空全部活动'; $('confirm-cancel').textContent = t('cancel'); $('confirm-ok').textContent = lang() === 'en-US' ? 'Confirm' : '确认'; $('emoji-trigger').setAttribute('title', lang() === 'en-US' ? 'Choose icon' : '选择图标');
+    $('install-ios-steps').innerHTML = lang() === 'en-US' ? '<li>Open the app URL in Safari.</li><li>Tap Share.</li><li>Choose “Add to Home Screen”.</li><li>Tap Add, then open it from the new icon.</li>' : '<li>用 Safari 打开应用网址。</li><li>点击分享按钮。</li><li>选择“添加到主屏幕”。</li><li>点击“添加”，再从新图标打开。</li>';
+    $('install-android-steps').innerHTML = lang() === 'en-US' ? '<li>Open the app URL in Chrome.</li><li>Tap the three-dot menu.</li><li>Choose “Add to Home screen” or “Install app”.</li><li>Confirm, then open it from the home screen.</li>' : '<li>用 Chrome 打开应用网址。</li><li>点击右上角三个点菜单。</li><li>选择“添加到主屏幕”或“安装应用”。</li><li>确认添加，再从桌面图标打开。</li>';
+    renderGreeting(); renderFilterCategories(); renderLibCategories(); renderCategorySelect(); renderLibrary();
   }
-
-  function categoryById(id) {
-    for (var i = 0; i < state.settings.categories.length; i++) {
-      if (state.settings.categories[i].id === id) return state.settings.categories[i];
-    }
-    return state.settings.categories[0];
-  }
-  function activityById(id) {
-    for (var i = 0; i < state.activities.length; i++) {
-      if (state.activities[i].id === id) return state.activities[i];
-    }
-    return null;
-  }
-  function energyEmoji(v) { return emojiOf(ENERGY, v); }
-  function playersEmoji(v) { return emojiOf(PLAYERS, v); }
-  function indoorEmoji(v) { return emojiOf(INDOOR, v); }
-  function emojiOf(list, v) {
-    for (var i = 0; i < list.length; i++) if (list[i].v === v) return list[i].e;
-    return '';
-  }
-  function durationText(a) {
-    return (a.durationMinutes == null) ? '时长不限' : (a.durationMinutes + ' 分钟');
-  }
-
-  /* ================= 语音播报 ================= */
-  function speak(text) {
-    try {
-      if (!('speechSynthesis' in window)) return;
-      if (!state.settings.voiceEnabled) return;
-      window.speechSynthesis.cancel();
-      var u = new SpeechSynthesisUtterance(text);
-      u.lang = 'zh-CN';
-      u.rate = 0.95;
-      u.pitch = 1.05;
-      var voices = window.speechSynthesis.getVoices();
-      for (var i = 0; i < voices.length; i++) {
-        if (/zh|cmn|Chinese/i.test(voices[i].lang)) { u.voice = voices[i]; break; }
-      }
-      window.speechSynthesis.speak(u);
-    } catch (e) {}
-  }
-  function speakResult(a) {
-    speak((state.settings.userName || '派派') + '，我们来玩——' + a.name + '！');
-  }
-  function shuffle(arr) {
-    for (var i = arr.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
-    }
-    return arr;
-  }
-
-  function save() {
-    var ok = S.saveState(state);
-    inMemory = !ok;
-    renderBanner();
-    return ok;
-  }
-
-  /* ================= 初始化 ================= */
-  function init() {
-    var res = S.loadState();
-    state = res.state;
-    inMemory = res.inMemory;
-    corrupt = res.corrupt;
-
-    renderBanner();
-    renderGreeting();
-    renderFilterCategories();
-    renderLibCategories();
-    renderCategorySelect();
-    renderEmojiPop();
-    renderSegmented();
-    renderLibrary();
-    bindEvents();
-    showView('recommend');
-    registerSW();
-    if ('speechSynthesis' in window) { try { window.speechSynthesis.getVoices(); } catch (e) {} }
-  }
-
-  /* ================= 提示条 / 提示 ================= */
-  function renderBanner() {
-    var b = $('banner');
-    if (inMemory) {
-      b.hidden = false; b.className = 'banner warn';
-      b.textContent = '⚠️ 浏览器存储不可用，数据仅在本次页面内保留，关闭后会丢失。';
-    } else if (corrupt) {
-      b.hidden = false; b.className = 'banner warn';
-      b.textContent = '⚠️ 检测到本地数据损坏，已用示例数据恢复（原数据已备份到本地存储）。';
-    } else {
-      b.hidden = true;
-    }
-  }
-
-  function toast(msg, actionLabel, actionCb) {
-    var t = $('toast');
-    t.innerHTML = '';
-    var span = document.createElement('span');
-    span.textContent = msg;
-    t.appendChild(span);
-    if (actionLabel && actionCb) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'toast-action';
-      b.textContent = actionLabel;
-      b.onclick = function () { hideToast(); actionCb(); };
-      t.appendChild(b);
-    }
-    t.hidden = false;
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, actionLabel ? 6000 : 2400);
-  }
+  function renderBanner() { var b = $('banner'); if (inMemory) { b.hidden = false; b.className = 'banner warn'; b.textContent = lang() === 'en-US' ? '⚠️ Browser storage is unavailable; changes will be lost when you close this page.' : '⚠️ 浏览器存储不可用，关闭后数据会丢失。'; } else if (corrupt) { b.hidden = false; b.className = 'banner warn'; b.textContent = lang() === 'en-US' ? '⚠️ Local data was damaged; the sample library has been restored.' : '⚠️ 本地数据损坏，已恢复示例数据。'; } else b.hidden = true; }
+  function toast(msg, actionLabel, actionCb) { var el = $('toast'); el.innerHTML = ''; var span = document.createElement('span'); span.textContent = msg; el.appendChild(span); if (actionLabel && actionCb) { var b = document.createElement('button'); b.className = 'toast-action'; b.type = 'button'; b.textContent = actionLabel; b.onclick = function () { hideToast(); actionCb(); }; el.appendChild(b); } el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, actionLabel ? 6000 : 2400); }
   function hideToast() { $('toast').hidden = true; }
-
-  /* ================= 视图切换 ================= */
-  function showView(name) {
-    document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
-    $('view-' + name).classList.add('active');
-    document.querySelectorAll('.tab').forEach(function (t) {
-      t.classList.toggle('active', t.getAttribute('data-view') === name);
-    });
-  }
-
-  /* ================= 推荐视图 ================= */
-  function renderGreeting() {
-    $('greeting-text').textContent = '今天玩什么呀，' + (state.settings.userName || '派派') + '？';
-  }
-
-  function renderFilterCategories() {
-    var box = $('filter-categories');
-    box.innerHTML = '';
-    state.settings.categories.forEach(function (c) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'clay-chip' + (selectedFilterCategories[c.id] ? ' active' : '');
-      b.innerHTML = '<span class="dot" style="background:' + esc(c.color) + '"></span>' + esc(c.emoji) + ' ' + esc(c.name);
-      b.onclick = function () {
-        if (selectedFilterCategories[c.id]) delete selectedFilterCategories[c.id];
-        else selectedFilterCategories[c.id] = true;
-        b.classList.toggle('active');
-      };
-      box.appendChild(b);
-    });
-  }
-
-  function readFilterOptions() {
-    return {
-      categoryIds: Object.keys(selectedFilterCategories),
-      duration: $('f-duration').value || null,
-      energy: $('f-energy').value || null,
-      players: $('f-players').value || null,
-      indoorOutdoor: $('f-indoor').value || null
-    };
-  }
-
-  function buildPool() {
-    if ($('pure-random').checked) return state.activities.slice();
-    return R.filter(state.activities, readFilterOptions());
-  }
-
-  function clearFilters() {
-    selectedFilterCategories = {};
-    $('f-duration').value = '';
-    $('f-energy').value = '';
-    $('f-players').value = '';
-    $('f-indoor').value = '';
-    renderFilterCategories();
-    $('empty-pool').hidden = true;
-  }
-
-  function showEmptyPool(show, msg) {
-    $('empty-pool').hidden = !show;
-    if (show && msg) $('empty-pool').querySelector('p').textContent = msg;
-    if (show) $('result-area').hidden = true;
-  }
-
-  function startPick() {
-    if (picking) return;
-    var pool = buildPool();
-    if (!pool.length) {
-      if (!state.activities.length) {
-        showEmptyPool(true, '还没有活动，点右上角「添加活动」录入一件吧～');
-      } else {
-        showEmptyPool(true, '没有符合条件的活动，试试放宽筛选～');
-      }
-      return;
-    }
-    var result = R.pick(pool, Number(state.settings.avoidRecentCount) || 0);
-    if (!result) { showEmptyPool(true, '暂时抽不出来，请稍后再试～'); return; }
-
-    result.lastPickedAt = S.now();
-    result.pickCount = (result.pickCount || 0) + 1;
-    result.updatedAt = S.now();
-    save();
-
-    picking = true;
-    $('pick-btn').disabled = true;
-    $('reroll-btn').disabled = true;
-    showEmptyPool(false);
-    $('result-area').hidden = false;
-
-    var card = $('result-card');
-    var cat = categoryById(result.categoryId);
-    card.style.setProperty('--card-color', cat.color);
-    card.classList.remove('jelly');
-
-    var displayPool = shuffle(pool.slice());
-    var i = 0;
-    var timer = setInterval(function () {
-      var a = displayPool[i % displayPool.length];
-      $('result-emoji').textContent = a.emoji || '🎉';
-      $('result-name').textContent = a.name;
-      i++;
-    }, 60);
-
-    setTimeout(function () {
-      clearInterval(timer);
-      showResult(result, cat);
-      card.classList.add('jelly');
-      confetti();
-      speakResult(result);
-      picking = false;
-      $('pick-btn').disabled = false;
-      $('reroll-btn').disabled = false;
-    }, 1500);
-  }
-
-  function showResult(a, cat) {
-    currentResult = a;
-    $('result-emoji').textContent = a.emoji || '🎉';
-    $('result-name').textContent = a.name;
-    $('result-meta').innerHTML =
-      '<span class="badge" style="background:' + esc(cat.color) + '">' + esc(cat.emoji) + ' ' + esc(cat.name) + '</span>' +
-      '<span class="meta-chip">⏱️ ' + durationText(a) + '</span>' +
-      '<span class="meta-chip">' + energyEmoji(a.energyLevel) + ' ' + a.energyLevel + '</span>' +
-      '<span class="meta-chip">' + playersEmoji(a.players) + ' ' + a.players + '</span>' +
-      '<span class="meta-chip">' + indoorEmoji(a.indoorOutdoor) + ' ' + a.indoorOutdoor + '</span>';
-    var desc = $('result-desc');
-    desc.textContent = a.description || '';
-    desc.hidden = !a.description;
-    var mat = $('result-materials');
-    mat.textContent = a.materials ? '🧰 材料：' + a.materials : '';
-    mat.hidden = !a.materials;
-  }
-
-  function confetti() {
-    var colors = ['#FFB6A3', '#FFD98E', '#A8E6CF', '#C3B1E1', '#A0D8EF', '#FF8FA3'];
-    var layer = $('confetti-layer');
-    for (var i = 0; i < 50; i++) {
-      var c = document.createElement('div');
-      c.className = 'confetti';
-      c.style.left = (Math.random() * 100) + 'vw';
-      c.style.background = colors[Math.floor(Math.random() * colors.length)];
-      c.style.animationDelay = (Math.random() * 0.4) + 's';
-      c.style.width = (6 + Math.random() * 8) + 'px';
-      c.style.height = (10 + Math.random() * 8) + 'px';
-      layer.appendChild(c);
-      (function (el) { setTimeout(function () { el.remove(); }, 3000); })(c);
-    }
-  }
-
-  /* ================= 活动库视图 ================= */
-  function renderLibCategories() {
-    var box = $('lib-categories');
-    box.innerHTML = '';
-    var all = document.createElement('button');
-    all.type = 'button';
-    all.className = 'clay-chip' + (selectedLibCategory === null ? ' active' : '');
-    all.textContent = '全部';
-    all.onclick = function () { selectedLibCategory = null; renderLibCategories(); renderLibrary(); };
-    box.appendChild(all);
-    state.settings.categories.forEach(function (c) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'clay-chip' + (selectedLibCategory === c.id ? ' active' : '');
-      b.innerHTML = esc(c.emoji) + ' ' + esc(c.name);
-      b.onclick = function () { selectedLibCategory = c.id; renderLibCategories(); renderLibrary(); };
-      box.appendChild(b);
-    });
-  }
-
-  function renderStats() {
-    var box = $('stats');
-    var html = '<span class="stat">🎉 共 <b>' + state.activities.length + '</b> 件</span>';
-    state.settings.categories.forEach(function (c) {
-      var n = state.activities.filter(function (a) { return a.categoryId === c.id; }).length;
-      if (n > 0) html += '<span class="stat">' + esc(c.emoji) + ' ' + esc(c.name) + ' <b>' + n + '</b></span>';
-    });
-    box.innerHTML = html;
-  }
-
-  function renderRecent() {
-    var box = $('recent-plays');
-    var list = $('recent-list');
-    var played = state.activities.filter(function (a) { return a.lastPlayedAt != null; })
-      .sort(function (a, b) { return (b.lastPlayedAt || 0) - (a.lastPlayedAt || 0); })
-      .slice(0, 8);
-    if (!played.length) { box.hidden = true; list.innerHTML = ''; return; }
-    box.hidden = false;
-    list.innerHTML = '';
-    played.forEach(function (a) {
-      var chip = document.createElement('span');
-      chip.className = 'recent-chip';
-      chip.textContent = a.emoji + ' ' + a.name + (a.playCount > 1 ? ' ×' + a.playCount : '');
-      chip.title = '最近玩过「' + a.name + '」共 ' + a.playCount + ' 次';
-      list.appendChild(chip);
-    });
-  }
-
-  function renderLibrary() {
-    var q = $('search').value.trim().toLowerCase();
-    var sortBy = $('sort').value;
-    var list = state.activities.slice();
-
-    if (selectedLibCategory) list = list.filter(function (a) { return a.categoryId === selectedLibCategory; });
-    if (q) {
-      list = list.filter(function (a) {
-        return (a.name || '').toLowerCase().indexOf(q) !== -1 ||
-               (a.description || '').toLowerCase().indexOf(q) !== -1 ||
-               (a.materials || '').toLowerCase().indexOf(q) !== -1 ||
-               (a.tags || []).some(function (t) { return t.toLowerCase().indexOf(q) !== -1; });
-      });
-    }
-
-    if (sortBy === 'name') list.sort(function (a, b) { return (a.name || '').localeCompare(b.name || '', 'zh'); });
-    else if (sortBy === 'duration') list.sort(function (a, b) { return (a.durationMinutes || 0) - (b.durationMinutes || 0); });
-    else if (sortBy === 'favorite') list.sort(function (a, b) { return (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0); });
-    else list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-
-    renderStats();
-    renderRecent();
-
-    var grid = $('activity-grid');
-    grid.innerHTML = '';
-    list.forEach(function (a) { grid.appendChild(buildCard(a)); });
-
-    var empty = $('lib-empty');
-    if (!state.activities.length) {
-      empty.hidden = false;
-      empty.querySelector('p').textContent = '📭 还没有活动，点「添加活动」录入第一件吧～';
-    } else if (!list.length) {
-      empty.hidden = false;
-      empty.querySelector('p').textContent = '🔍 没有找到匹配的活动，换个关键词或类别试试～';
-    } else {
-      empty.hidden = true;
-    }
-  }
-
-  function buildCard(a) {
-    var cat = categoryById(a.categoryId);
-    var card = document.createElement('div');
-    card.className = 'clay-card activity-card';
-    card.style.setProperty('--card-color', cat.color);
-    card.innerHTML =
-      '<div class="card-emoji">' + esc(a.emoji) + '</div>' +
-      '<div class="card-body">' +
-        '<div class="card-title-row"><h3>' + esc(a.name) + '</h3>' + (a.favorite ? '<span class="fav-star">⭐</span>' : '') + '</div>' +
-        '<span class="badge" style="background:' + esc(cat.color) + '">' + esc(cat.emoji) + ' ' + esc(cat.name) + '</span>' +
-        '<div class="card-meta">' +
-          '<span>⏱️ ' + durationText(a) + '</span>' +
-          (a.playCount > 0 ? '<span>▶ 玩过 ' + a.playCount + ' 次</span>' : '') +
-          '<span>' + energyEmoji(a.energyLevel) + ' ' + a.energyLevel + '</span>' +
-          '<span>' + playersEmoji(a.players) + ' ' + a.players + '</span>' +
-          '<span>' + indoorEmoji(a.indoorOutdoor) + ' ' + a.indoorOutdoor + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="card-actions">' +
-        '<button class="icon-btn" data-action="fav" title="收藏">' + (a.favorite ? '⭐' : '☆') + '</button>' +
-        '<button class="icon-btn" data-action="edit" title="编辑">✏️</button>' +
-        '<button class="icon-btn" data-action="del" title="删除">🗑️</button>' +
-      '</div>';
-
-    card.querySelector('[data-action="fav"]').onclick = function () {
-      a.favorite = !a.favorite;
-      a.updatedAt = S.now();
-      save();
-      renderLibrary();
-    };
-    card.querySelector('[data-action="edit"]').onclick = function () { openForm(a); };
-    card.querySelector('[data-action="del"]').onclick = function () { confirmDelete(a); };
-    return card;
-  }
-
-  /* ================= 表单（添加/编辑） ================= */
-  function renderCategorySelect() {
-    var sel = $('f-category');
-    var prev = sel.value;
-    sel.innerHTML = '';
-    state.settings.categories.forEach(function (c) {
-      var o = document.createElement('option');
-      o.value = c.id;
-      o.textContent = c.emoji + ' ' + c.name;
-      sel.appendChild(o);
-    });
-    if (prev) sel.value = prev;
-  }
-
-  function renderEmojiPop() {
-    var pop = $('emoji-pop');
-    pop.innerHTML = '';
-    EMOJIS.forEach(function (e) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = e;
-      b.onclick = function () {
-        setEmoji(e, false);
-        closeEmojiPop();
-      };
-      pop.appendChild(b);
-    });
-  }
-
-  function setEmoji(e, followCategory) {
-    selectedEmoji = e || '🧸';
-    emojiAutoFollow = !!followCategory;
-    $('emoji-trigger').textContent = selectedEmoji;
-    highlightSelectedEmoji();
-  }
-
-  function highlightSelectedEmoji() {
-    var pop = $('emoji-pop');
-    pop.querySelectorAll('button').forEach(function (b) {
-      b.classList.toggle('selected', b.textContent === selectedEmoji);
-    });
-  }
-
-  function toggleEmojiPop() {
-    var pop = $('emoji-pop');
-    if (pop.hidden) {
-      highlightSelectedEmoji();
-      pop.hidden = false;
-    } else {
-      pop.hidden = true;
-    }
-  }
-  function closeEmojiPop() { $('emoji-pop').hidden = true; }
-
-  function renderSegmented() {
-    buildSegmented($('f-energy-seg'), 'seg-energy', ENERGY, '适中');
-    buildSegmented($('f-players-seg'), 'seg-players', PLAYERS, '独自');
-    buildSegmented($('f-indoor-seg'), 'seg-indoor', INDOOR, '室内');
-  }
-
-  function buildSegmented(box, name, items, def) {
-    box.innerHTML = '';
-    items.forEach(function (it) {
-      var id = name + '-' + it.v;
-      var input = document.createElement('input');
-      input.type = 'radio';
-      input.name = name;
-      input.id = id;
-      input.value = it.v;
-      if (it.v === def) input.checked = true;
-      var label = document.createElement('label');
-      label.htmlFor = id;
-      label.textContent = it.e + ' ' + it.v;
-      box.appendChild(input);
-      box.appendChild(label);
-    });
-  }
-
-  function segValue(name) {
-    var el = document.querySelector('input[name="' + name + '"]:checked');
-    return el ? el.value : null;
-  }
-  function setSegValue(name, value) {
-    var el = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
-    if (el) el.checked = true;
-  }
-
-  function openForm(a) {
-    editingId = a ? a.id : null;
-    $('form-title').textContent = a ? '✏️ 编辑活动' : '➕ 添加活动';
-    $('f-id').value = a ? a.id : '';
-    renderCategorySelect();
-    $('f-category').value = a ? a.categoryId : (state.settings.categories[0] ? state.settings.categories[0].id : '');
-    $('f-name').value = a ? a.name : '';
-    $('f-duration-min').value = a && a.durationMinutes != null ? a.durationMinutes : '';
-    var cat0 = categoryById($('f-category').value);
-    setEmoji(a ? a.emoji : (cat0 ? cat0.emoji : EMOJIS[0]), !a);
-    $('f-desc').value = a ? a.description : '';
-    $('f-materials').value = a ? a.materials : '';
-    $('f-tags').value = a ? (a.tags || []).join(', ') : '';
-    $('f-favorite').checked = a ? !!a.favorite : false;
-    setSegValue('seg-energy', a ? a.energyLevel : '适中');
-    setSegValue('seg-players', a ? a.players : '独自');
-    setSegValue('seg-indoor', a ? a.indoorOutdoor : '室内');
-    clearShake();
-    openModal('form-modal');
-  }
-
-  function validateForm() {
-    if (!$('f-name').value.trim()) { fail($('f-name'), '请填写活动名称～'); return false; }
-    var raw = $('f-duration-min').value.trim();
-    if (raw !== '') {
-      var d = Number(raw);
-      if (!Number.isInteger(d) || d < 1 || d > 1000) { fail($('f-duration-min'), '请填写 1–1000 的分钟数～'); return false; }
-    }
-    return true;
-  }
-
-  function fail(input, msg) {
-    input.classList.remove('shake');
-    void input.offsetWidth;
-    input.classList.add('shake');
-    toast(msg);
-    input.focus();
-  }
-  function clearShake() {
-    document.querySelectorAll('.shake').forEach(function (el) { el.classList.remove('shake'); });
-  }
-
-  function submitForm(e) {
-    e.preventDefault();
-    if (!validateForm()) return;
-    var cat = categoryById($('f-category').value);
-    var data = {
-      name: $('f-name').value.trim(),
-      categoryId: $('f-category').value,
-      emoji: selectedEmoji || (cat ? cat.emoji : '🎈'),
-      durationMinutes: $('f-duration-min').value.trim() === '' ? null : parseInt($('f-duration-min').value, 10),
-      energyLevel: segValue('seg-energy'),
-      players: segValue('seg-players'),
-      indoorOutdoor: segValue('seg-indoor'),
-      description: $('f-desc').value.trim(),
-      materials: $('f-materials').value.trim(),
-      tags: $('f-tags').value.split(/[,，]/).map(function (t) { return t.trim(); }).filter(Boolean),
-      favorite: $('f-favorite').checked
-    };
-
-    if (editingId) {
-      var existing = activityById(editingId);
-      if (existing) {
-        for (var k in data) existing[k] = data[k];
-        existing.updatedAt = S.now();
-      }
-    } else {
-      var fresh = { id: S.genId(), lastPickedAt: null, pickCount: 0, createdAt: S.now(), updatedAt: S.now() };
-      for (var k2 in data) fresh[k2] = data[k2];
-      state.activities.unshift(fresh);
-    }
-
-    save();
-    closeModal('form-modal');
-    renderLibrary();
-    toast(editingId ? '✏️ 已保存修改～' : '🎉 新增成功！');
-    showView('library');
-  }
-
-  /* ================= 删除确认 ================= */
-  function confirmDelete(a) {
-    var idx = state.activities.indexOf(a);
-    showConfirm('删除活动', '确定删除「' + a.name + '」吗？', function () {
-      state.activities.splice(idx, 1);
-      save();
-      renderLibrary();
-      toast('🗑️ 已删除「' + a.name + '」', '撤销', function () {
-        state.activities.splice(Math.min(idx, state.activities.length), 0, a);
-        save();
-        renderLibrary();
-        toast('✅ 已恢复「' + a.name + '」');
-      });
-    });
-  }
-
-  /* ================= 通用确认弹窗 ================= */
-  function showConfirm(title, message, cb) {
-    $('confirm-title').textContent = title;
-    $('confirm-message').textContent = message;
-    confirmCallback = cb;
-    openModal('confirm-modal');
-  }
-
-  /* ================= 设置 ================= */
-  function openSettings() {
-    $('s-name').value = state.settings.userName;
-    $('s-avoid').value = state.settings.avoidRecentCount;
-    $('s-voice').checked = !!state.settings.voiceEnabled;
-    $('s-voice').closest('.voice-check').classList.toggle('active', !!state.settings.voiceEnabled);
-    renderCategoryList();
-    openModal('settings-modal');
-  }
-
-  function renderCategoryList() {
-    var box = $('category-list');
-    box.innerHTML = '';
-    state.settings.categories.forEach(function (c, i) {
-      var row = document.createElement('div');
-      row.className = 'category-row';
-      row.innerHTML =
-        '<input type="text" class="clay-input" data-i="' + i + '" data-k="emoji" value="' + esc(c.emoji) + '" maxlength="4" title="图标">' +
-        '<input type="text" class="clay-input" data-i="' + i + '" data-k="name" value="' + esc(c.name) + '" maxlength="20" title="名称">' +
-        '<input type="color" data-i="' + i + '" data-k="color" value="' + esc(c.color) + '" title="颜色">' +
-        '<button type="button" class="icon-btn" data-delcat="' + i + '" title="删除类别">🗑️</button>';
-      box.appendChild(row);
-    });
-    box.querySelectorAll('[data-delcat]').forEach(function (btn) {
-      btn.onclick = function () { deleteCategory(parseInt(btn.getAttribute('data-delcat'), 10)); };
-    });
-  }
-
-  function deleteCategory(i) {
-    var c = state.settings.categories[i];
-    if (!c) return;
-    if (state.settings.categories.length <= 1) { toast('至少保留一个类别～'); return; }
-    var fallback = state.settings.categories[i === 0 ? 1 : 0];
-    var count = state.activities.filter(function (a) { return a.categoryId === c.id; }).length;
-    var msg = '删除类别「' + c.name + '」？';
-    if (count > 0) msg += ' 该类别下 ' + count + ' 个活动会移到「' + fallback.name + '」。';
-    showConfirm('删除类别', msg, function () {
-      state.settings.categories.splice(i, 1);
-      state.activities.forEach(function (a) { if (a.categoryId === c.id) a.categoryId = fallback.id; });
-      save();
-      renderCategoryList();
-      refreshAfterCategoryChange();
-    });
-  }
-
-  function refreshAfterCategoryChange() {
-    selectedFilterCategories = {};
-    selectedLibCategory = null;
-    renderFilterCategories();
-    renderLibCategories();
-    renderCategorySelect();
-    renderLibrary();
-  }
-
-  function saveSettings() {
-    var name = $('s-name').value.trim() || '派派';
-    var avoid = parseInt($('s-avoid').value, 10);
-    if (isNaN(avoid) || avoid < 1 || avoid > 10) avoid = 3;
-
-    var cats = [];
-    var ok = true;
-    $('category-list').querySelectorAll('.category-row').forEach(function (row) {
-      var emoji = row.querySelector('[data-k="emoji"]').value.trim();
-      var cname = row.querySelector('[data-k="name"]').value.trim();
-      var color = row.querySelector('[data-k="color"]').value;
-      var i = parseInt(row.querySelector('[data-k="emoji"]').getAttribute('data-i'), 10);
-      var old = state.settings.categories[i];
-      if (!cname) { ok = false; toast('类别名称不能为空～'); return; }
-      cats.push({
-        id: old ? old.id : S.genId(),
-        name: cname,
-        emoji: emoji || '🎈',
-        color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#E8C4A0'
-      });
-    });
-    if (!ok) return;
-
-    state.settings.userName = name;
-    state.settings.avoidRecentCount = avoid;
-    state.settings.categories = cats;
-    state.settings.voiceEnabled = !!$('s-voice').checked;
-    save();
-    closeModal('settings-modal');
-    refreshAfterCategoryChange();
-    renderGreeting();
-    toast('💾 设置已保存');
-  }
-
-  function importFile() {
-    var input = $('import-file');
-    var f = input.files && input.files[0];
-    if (!f) return;
-    var reader = new FileReader();
-    reader.onload = function () {
-      var res = S.importJSON(String(reader.result || ''));
-      if (res.ok) {
-        state = res.state;
-        save();
-        closeModal('settings-modal');
-        refreshAfterCategoryChange();
-        renderGreeting();
-        toast('📥 导入成功，共 ' + state.activities.length + ' 个活动');
-      } else {
-        toast('❌ ' + res.error);
-      }
-    };
-    reader.readAsText(f);
-    input.value = '';
-  }
-
-  /* ================= 弹窗开关 ================= */
+  function renderGreeting() { $('greeting-text').textContent = fmt(t('greeting'), state.settings.userName || (lang() === 'en-US' ? 'friend' : '小朋友')); }
+  function renderFilterCategories() { var box = $('filter-categories'); box.innerHTML = ''; state.settings.categories.forEach(function (c) { var b = document.createElement('button'); b.type = 'button'; b.className = 'clay-chip' + (selectedFilterCategories[c.id] ? ' active' : ''); b.innerHTML = '<span class="dot" style="background:' + esc(c.color) + '"></span>' + esc(c.emoji) + ' ' + esc(catName(c)); b.onclick = function () { if (selectedFilterCategories[c.id]) delete selectedFilterCategories[c.id]; else selectedFilterCategories[c.id] = true; b.classList.toggle('active'); }; box.appendChild(b); }); }
+  function renderLibCategories() { var box = $('lib-categories'); box.innerHTML = ''; var all = document.createElement('button'); all.type = 'button'; all.className = 'clay-chip' + (selectedLibCategory === null ? ' active' : ''); all.textContent = lang() === 'en-US' ? 'All' : '全部'; all.onclick = function () { selectedLibCategory = null; renderLibCategories(); renderLibrary(); }; box.appendChild(all); state.settings.categories.forEach(function (c) { var b = document.createElement('button'); b.type = 'button'; b.className = 'clay-chip' + (selectedLibCategory === c.id ? ' active' : ''); b.innerHTML = esc(c.emoji) + ' ' + esc(catName(c)); b.onclick = function () { selectedLibCategory = c.id; renderLibCategories(); renderLibrary(); }; box.appendChild(b); }); }
+  function renderStats() { var html = '<span class="stat">🎉 ' + (lang() === 'en-US' ? 'Total' : '共') + ' <b>' + state.activities.length + '</b></span>'; state.settings.categories.forEach(function (c) { var n = state.activities.filter(function (a) { return a.categoryId === c.id; }).length; if (n) html += '<span class="stat">' + esc(c.emoji) + ' ' + esc(catName(c)) + ' <b>' + n + '</b></span>'; }); $('stats').innerHTML = html; }
+  function renderRecent() { var box = $('recent-plays'), list = $('recent-list'); var played = state.activities.filter(function (a) { return a.lastPlayedAt != null; }).sort(function (a, b) { return (b.lastPlayedAt || 0) - (a.lastPlayedAt || 0); }).slice(0, 8); if (!played.length) { box.hidden = true; list.innerHTML = ''; return; } box.hidden = false; list.innerHTML = ''; played.forEach(function (a) { var chip = document.createElement('span'); chip.className = 'recent-chip'; var icon = document.createElement('span'); icon.className = 'recent-icon'; appendActivityIcon(icon, a); chip.appendChild(icon); var label = document.createElement('span'); label.textContent = ' ' + activityName(a) + (a.playCount > 1 ? ' ×' + a.playCount : ''); chip.appendChild(label); list.appendChild(chip); }); }
+  function renderLibrary() { var q = $('search').value.trim().toLowerCase(), list = state.activities.slice(); if (selectedLibCategory) list = list.filter(function (a) { return a.categoryId === selectedLibCategory; }); if (q) list = list.filter(function (a) { return [a.nameZh,a.nameEn,a.descriptionZh,a.descriptionEn,a.materialsZh,a.materialsEn].join(' ').toLowerCase().indexOf(q) !== -1; }); var sortBy = $('sort').value; if (sortBy === 'name') list.sort(function (a, b) { return activityName(a).localeCompare(activityName(b), lang() === 'en-US' ? 'en' : 'zh'); }); else if (sortBy === 'favorite') list.sort(function (a, b) { return (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0); }); else list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); }); renderStats(); renderRecent(); var grid = $('activity-grid'); grid.innerHTML = ''; list.forEach(function (a) { grid.appendChild(buildCard(a)); }); var empty = $('lib-empty'); empty.hidden = !!list.length; if (!list.length) empty.querySelector('p').textContent = !state.activities.length ? '📭 ' + t('noActivities') : (q || selectedLibCategory ? '🔍 ' + t('noSearch') : '📭 ' + t('noActivities')); }
+  function buildCard(a) { var cat = categoryById(a.categoryId), card = document.createElement('div'); card.className = 'clay-card activity-card'; card.style.setProperty('--card-color', cat.color); card.innerHTML = '<div class="card-emoji"></div><div class="card-body"><div class="card-title-row"><h3>' + esc(activityName(a)) + '</h3>' + (a.favorite ? '<span class="fav-star">⭐</span>' : '') + '</div><div class="badge-row"><span class="badge" style="background:' + esc(cat.color) + '">' + esc(cat.emoji) + ' ' + esc(catName(cat)) + '</span><span class="source-badge ' + (a.source === 'builtin' ? 'builtin' : 'custom') + '">' + esc(sourceLabel(a)) + '</span></div><p class="card-description">' + esc(activityDesc(a)) + '</p><p class="card-materials">' + (activityMaterials(a) ? '🧰 ' + esc(t('materials')) + esc(activityMaterials(a)) : '') + '</p><div class="card-meta">' + (a.playCount > 0 ? '▶ ' + fmt(t('played'), a.playCount) : '') + '</div></div><div class="card-actions"><button class="icon-btn" data-action="fav" title="' + esc(t('favorite')) + '">' + (a.favorite ? '⭐' : '☆') + '</button><button class="icon-btn" data-action="edit" title="' + esc(t('edit')) + '">✏️</button><button class="icon-btn" data-action="del" title="' + esc(lang() === 'en-US' ? 'Delete' : '删除') + '">🗑️</button></div>'; appendActivityIcon(card.querySelector('.card-emoji'), a); card.querySelector('[data-action="fav"]').onclick = function () { a.favorite = !a.favorite; a.updatedAt = S.now(); save(); renderLibrary(); }; card.querySelector('[data-action="edit"]').onclick = function () { openForm(a); }; card.querySelector('[data-action="del"]').onclick = function () { confirmDelete(a); }; return card; }
+  function renderCategorySelect() { var sel = $('f-category'), prev = sel.value; sel.innerHTML = ''; state.settings.categories.forEach(function (c) { var o = document.createElement('option'); o.value = c.id; o.textContent = c.emoji + ' ' + catName(c); sel.appendChild(o); }); if (prev) sel.value = prev; }
+  function renderEmojiPop() { var pop = $('emoji-pop'); pop.innerHTML = ''; EMOJIS.forEach(function (e) { var b = document.createElement('button'); b.type = 'button'; b.textContent = e; b.onclick = function () { selectedEmoji = e; selectedIconType = 'emoji'; selectedIconKey = ''; emojiAutoFollow = false; $('emoji-trigger').textContent = e; pop.hidden = true; }; pop.appendChild(b); }); var special = document.createElement('div'); special.className = 'emoji-special'; Object.keys(SVG_ICONS).forEach(function (key) { var b = document.createElement('button'); b.type = 'button'; b.className = 'svg-choice'; var img = document.createElement('img'); img.src = SVG_ICONS[key]; img.alt = key; b.appendChild(img); b.onclick = function () { selectedIconType = 'svg'; selectedIconKey = key; var meta = S.BUILTIN_META && Object.keys(S.BUILTIN_META).map(function (n) { return S.BUILTIN_META[n]; }).find(function (m) { return m.iconKey === key; }); selectedEmoji = meta && meta.fallback ? meta.fallback : '🎈'; emojiAutoFollow = false; $('emoji-trigger').innerHTML = ''; var preview = document.createElement('img'); preview.src = SVG_ICONS[key]; preview.className = 'activity-icon-svg'; $('emoji-trigger').appendChild(preview); pop.hidden = true; }; special.appendChild(b); }); pop.appendChild(special); }
+  function openForm(a) { editingId = a ? a.id : null; $('form-title').textContent = '➕ ' + (a ? t('edit') : t('addTitle')); $('f-id').value = a ? a.id : ''; renderCategorySelect(); $('f-category').value = a ? a.categoryId : state.settings.categories[0].id; var cat = categoryById($('f-category').value); selectedEmoji = a ? a.emoji : cat.emoji; selectedIconType = a && a.iconType === 'svg' ? 'svg' : 'emoji'; selectedIconKey = a && a.iconKey ? a.iconKey : ''; emojiAutoFollow = !a; $('emoji-trigger').innerHTML = ''; if (selectedIconType === 'svg' && SVG_ICONS[selectedIconKey]) { var img = document.createElement('img'); img.src = SVG_ICONS[selectedIconKey]; img.className = 'activity-icon-svg'; $('emoji-trigger').appendChild(img); } else $('emoji-trigger').textContent = selectedEmoji; $('f-name').value = a ? a.nameZh : ''; $('f-name-en').value = a ? a.nameEn : ''; $('f-desc').value = a ? a.descriptionZh : ''; $('f-desc-en').value = a ? a.descriptionEn : ''; $('f-materials').value = a ? a.materialsZh : ''; $('f-materials-en').value = a ? a.materialsEn : ''; $('f-favorite').checked = a ? !!a.favorite : false; openModal('form-modal'); }
+  function validateForm() { if (!$('f-name').value.trim()) { fail($('f-name'), lang() === 'en-US' ? 'Please enter a Chinese name.' : '请填写中文名称～'); return false; } if (!$('f-name-en').value.trim()) { fail($('f-name-en'), 'Please enter an English name.'); return false; } return true; }
+  function fail(input, msg) { input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake'); toast(msg); input.focus(); }
+  function submitForm(e) { e.preventDefault(); if (!validateForm()) return; var data = { nameZh: $('f-name').value.trim(), nameEn: $('f-name-en').value.trim(), categoryId: $('f-category').value, emoji: selectedEmoji || '🎈', iconType: selectedIconType === 'svg' && SVG_ICONS[selectedIconKey] ? 'svg' : 'emoji', iconKey: selectedIconType === 'svg' && SVG_ICONS[selectedIconKey] ? selectedIconKey : '', source: 'custom', catalogId: null, descriptionZh: $('f-desc').value.trim(), descriptionEn: $('f-desc-en').value.trim(), materialsZh: $('f-materials').value.trim(), materialsEn: $('f-materials-en').value.trim(), favorite: $('f-favorite').checked }; if (editingId) { var existing = activityById(editingId); if (existing) { Object.keys(data).forEach(function (k) { if (k !== 'source' && k !== 'catalogId') existing[k] = data[k]; }); existing.updatedAt = S.now(); } } else { var fresh = { id: S.genId(), source: 'custom', catalogId: null, iconType: data.iconType, iconKey: data.iconKey, lastPickedAt: null, pickCount: 0, lastPlayedAt: null, playCount: 0, createdAt: S.now(), updatedAt: S.now() }; Object.keys(data).forEach(function (k) { fresh[k] = data[k]; }); state.activities.unshift(fresh); } save(); closeModal('form-modal'); renderLibrary(); toast(editingId ? t('edited') : t('added')); showView('library'); }
+  function confirmDelete(a) { var idx = state.activities.indexOf(a); showConfirm(lang() === 'en-US' ? 'Delete activity' : '删除活动', lang() === 'en-US' ? 'Delete “' + activityName(a) + '”?' : '确定删除「' + activityName(a) + '」吗？', function () { state.activities.splice(idx, 1); save(); renderLibrary(); toast(fmt(t('deleted'), activityName(a)), lang() === 'en-US' ? 'Undo' : '撤销', function () { state.activities.splice(Math.min(idx, state.activities.length), 0, a); save(); renderLibrary(); toast(fmt(t('restored'), activityName(a))); }); }); }
+  function showConfirm(title, message, cb) { $('confirm-title').textContent = title; $('confirm-message').textContent = message; confirmCallback = cb; openModal('confirm-modal'); }
   function openModal(id) { $(id).hidden = false; }
   function closeModal(id) { $(id).hidden = true; }
-
-  /* ================= PWA ================= */
-  function registerSW() {
-    if (!('serviceWorker' in navigator)) return;
-    if (location.protocol !== 'https:' && location.protocol !== 'http:') return;
-    try {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
-    } catch (e) {}
-  }
-
-  /* ================= 事件绑定 ================= */
+  function showView(name) { document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); }); $('view-' + name).classList.add('active'); document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-view') === name); }); }
+  function buildPool() { return $('pure-random').checked ? state.activities.slice() : R.filter(state.activities, { categoryIds: Object.keys(selectedFilterCategories) }); }
+  function clearFilters() { selectedFilterCategories = {}; renderFilterCategories(); $('empty-pool').hidden = true; }
+  function speak(text) { try { if (!('speechSynthesis' in window) || !state.settings.voiceEnabled) return; window.speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(text); u.lang = lang(); var wanted = lang() === 'en-US' ? ['en-US','en'] : ['zh-CN','zh','cmn']; var found = voices.find(function (v) { return wanted.indexOf(v.lang) !== -1; }); if (found) u.voice = found; u.rate = 0.95; u.pitch = 1.05; window.speechSynthesis.speak(u); } catch (e) {} }
+  function speakResult(a) { speak(lang() === 'en-US' ? ((state.settings.userName || 'Friend') + ', let’s do ' + activityName(a) + '!') : ((state.settings.userName || '小朋友') + '，我们来玩——' + activityName(a) + '！')); }
+  function testVoice() { if (!('speechSynthesis' in window)) { toast(t('voiceUnavailable')); return; } speak(lang() === 'en-US' ? 'This is a voice test.' : '这是语音试听。'); }
+  function startPick() { if (picking) return; var pool = buildPool(); if (!pool.length) { $('empty-pool').hidden = false; $('empty-pool-text').textContent = !state.activities.length ? '😯 ' + t('emptyPick') : '😯 ' + t('noMatch'); $('result-area').hidden = true; return; } var result = R.pick(pool, Number(state.settings.avoidRecentCount) || 0); result.lastPickedAt = S.now(); result.pickCount = (result.pickCount || 0) + 1; save(); picking = true; $('pick-btn').disabled = true; $('reroll-btn').disabled = true; $('result-area').hidden = false; var card = $('result-card'), cat = categoryById(result.categoryId), displayPool = pool.slice(), i = 0; card.style.setProperty('--card-color', cat.color); card.classList.remove('jelly'); var timer = setInterval(function () { var x = displayPool[i++ % displayPool.length]; appendActivityIcon($('result-emoji'), x); $('result-name').textContent = activityName(x); }, 60); setTimeout(function () { clearInterval(timer); showResult(result, cat); card.classList.add('jelly'); speakResult(result); picking = false; $('pick-btn').disabled = false; $('reroll-btn').disabled = false; }, 1500); }
+  function showResult(a, cat) { currentResult = a; appendActivityIcon($('result-emoji'), a); $('result-name').textContent = activityName(a); $('result-meta').innerHTML = '<span class="badge" style="background:' + esc(cat.color) + '">' + esc(cat.emoji) + ' ' + esc(catName(cat)) + '</span><span class="source-badge ' + (a.source === 'builtin' ? 'builtin' : 'custom') + '">' + esc(sourceLabel(a)) + '</span>'; $('result-desc').textContent = activityDesc(a); $('result-desc').hidden = !activityDesc(a); $('result-materials').textContent = activityMaterials(a) ? '🧰 ' + t('materials') + activityMaterials(a) : ''; $('result-materials').hidden = !activityMaterials(a); }
+  function confetti() { var colors = ['#FFB6A3','#FFD98E','#A8E6CF','#C3B1E1','#A0D8EF','#FF8FA3'], layer = $('confetti-layer'); for (var i = 0; i < 50; i++) { var c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw'; c.style.background = colors[Math.floor(Math.random() * colors.length)]; c.style.animationDelay = Math.random() * .4 + 's'; c.style.width = 6 + Math.random() * 8 + 'px'; c.style.height = 10 + Math.random() * 8 + 'px'; layer.appendChild(c); (function (el) { setTimeout(function () { el.remove(); }, 3000); })(c); } }
+  function saveSettings() { state.settings.userName = $('s-name').value.trim() || (lang() === 'en-US' ? 'Friend' : '小朋友'); var avoid = parseInt($('s-avoid').value, 10); state.settings.avoidRecentCount = isNaN(avoid) || avoid < 1 || avoid > 10 ? 3 : avoid; state.settings.language = $('s-language').value === 'en-US' ? 'en-US' : 'zh-CN'; state.settings.voiceEnabled = !!$('s-voice').checked; save(); closeModal('settings-modal'); applyI18n(); toast(t('saved')); }
+  function importFile() { var input = $('import-file'), f = input.files && input.files[0]; if (!f) return; var reader = new FileReader(); reader.onload = function () { var res = S.importJSON(String(reader.result || '')); if (res.ok) { state = res.state; save(); closeModal('settings-modal'); applyI18n(); toast(fmt(t('importOk'), state.activities.length)); } else toast('❌ ' + res.error); }; reader.readAsText(f); input.value = ''; }
   function bindEvents() {
-    document.querySelectorAll('.tab').forEach(function (t) {
-      t.onclick = function () { showView(t.getAttribute('data-view')); };
-    });
-
-    $('open-form').onclick = function () { openForm(null); };
-    $('open-settings').onclick = openSettings;
-
-    document.querySelectorAll('[data-close]').forEach(function (b) {
-      b.onclick = function () { closeModal(b.getAttribute('data-close')); };
-    });
-    document.querySelectorAll('.modal-backdrop').forEach(function (bd) {
-      bd.addEventListener('click', function (e) { if (e.target === bd) bd.hidden = true; });
-    });
-
-    $('activity-form').addEventListener('submit', submitForm);
-    $('f-category').addEventListener('change', function () {
-      var c = categoryById(this.value);
-      if (c && emojiAutoFollow) setEmoji(c.emoji, true);
-    });
-    $('emoji-trigger').addEventListener('click', function (e) {
-      e.stopPropagation();
-      toggleEmojiPop();
-    });
-    document.addEventListener('click', function (e) {
-      if (!e.target.closest('.emoji-pick')) closeEmojiPop();
-    });
-
-    $('pick-btn').onclick = startPick;
-    $('reroll-btn').onclick = startPick;
-    $('confirm-btn').onclick = function () {
-      if (currentResult) {
-        currentResult.lastPlayedAt = S.now();
-        currentResult.playCount = (currentResult.playCount || 0) + 1;
-        currentResult.updatedAt = S.now();
-        save();
-        renderLibrary();
-      }
-      confetti();
-      speak('玩得开心～');
-      toast('🎉 玩得开心～');
-    };
-
-    $('toggle-filters').onclick = function () { $('filter-panel').hidden = !$('filter-panel').hidden; };
-    $('clear-filters').onclick = clearFilters;
-    $('clear-filters-2').onclick = clearFilters;
-    $('pure-random').addEventListener('change', function () {
-      $('pure-random').closest('.pure-random').classList.toggle('active', this.checked);
-    });
-
-    $('search').addEventListener('input', renderLibrary);
-    $('sort').addEventListener('change', renderLibrary);
-
-    $('add-category').onclick = function () {
-      state.settings.categories.push({ id: S.genId(), name: '新类别', emoji: '🎈', color: '#E8C4A0' });
-      renderCategoryList();
-    };
-    $('save-settings').onclick = saveSettings;
-    $('s-voice').addEventListener('change', function () {
-      this.closest('.voice-check').classList.toggle('active', this.checked);
-    });
-    $('export-btn').onclick = function () { S.exportJSON(state); toast('📤 已导出备份'); };
-    $('import-btn').onclick = function () { $('import-file').click(); };
-    $('import-file').addEventListener('change', importFile);
-    $('reset-sample').onclick = function () {
-      showConfirm('恢复示例数据', '将用示例数据覆盖当前所有数据，确定吗？（建议先导出备份）', function () {
-        state = S.resetSample();
-        save();
-        closeModal('settings-modal');
-        refreshAfterCategoryChange();
-        renderGreeting();
-        toast('🧪 已恢复示例数据');
-      });
-    };
-    $('clear-all').onclick = function () {
-      showConfirm('清空全部数据', '将删除全部活动（类别保留），此操作不可恢复。确定吗？', function () {
-        state.activities = [];
-        save();
-        renderLibrary();
-        closeModal('settings-modal');
-        toast('🗑️ 已清空全部活动');
-      });
-    };
-
-    $('confirm-ok').onclick = function () {
-      closeModal('confirm-modal');
-      if (confirmCallback) { var cb = confirmCallback; confirmCallback = null; cb(); }
-    };
-    $('confirm-cancel').onclick = function () { closeModal('confirm-modal'); confirmCallback = null; };
+    document.querySelectorAll('.tab').forEach(function (b) { b.onclick = function () { showView(b.getAttribute('data-view')); }; }); $('open-form').onclick = function () { openForm(null); }; $('open-settings').onclick = function () { $('s-name').value = state.settings.userName; $('s-avoid').value = state.settings.avoidRecentCount; $('s-language').value = lang(); $('s-voice').checked = !!state.settings.voiceEnabled; openModal('settings-modal'); };
+    document.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = function () { closeModal(b.getAttribute('data-close')); }; }); document.querySelectorAll('.modal-backdrop').forEach(function (bd) { bd.addEventListener('click', function (e) { if (e.target === bd) bd.hidden = true; }); }); $('activity-form').addEventListener('submit', submitForm); $('f-category').addEventListener('change', function () { if (emojiAutoFollow) { selectedEmoji = categoryById(this.value).emoji; selectedIconType = 'emoji'; selectedIconKey = ''; $('emoji-trigger').textContent = selectedEmoji; } }); $('emoji-trigger').onclick = function (e) { e.stopPropagation(); $('emoji-pop').hidden = !$('emoji-pop').hidden; }; document.addEventListener('click', function (e) { if (!e.target.closest('.emoji-pick')) $('emoji-pop').hidden = true; }); $('pick-btn').onclick = startPick; $('reroll-btn').onclick = startPick; $('confirm-btn').onclick = function () { if (currentResult) { currentResult.lastPlayedAt = S.now(); currentResult.playCount = (currentResult.playCount || 0) + 1; save(); renderLibrary(); } confetti(); speak(t('confirmPlay')); toast(t('confirmPlay')); }; $('toggle-filters').onclick = function () { $('filter-panel').hidden = !$('filter-panel').hidden; }; $('clear-filters').onclick = clearFilters; $('clear-filters-2').onclick = clearFilters; $('pure-random').onchange = function () { this.closest('.pure-random').classList.toggle('active', this.checked); }; $('search').oninput = renderLibrary; $('sort').onchange = renderLibrary; $('save-settings').onclick = saveSettings; $('voice-test').onclick = testVoice; $('s-language').onchange = function () { state.settings.language = this.value === 'en-US' ? 'en-US' : 'zh-CN'; applyI18n(); }; $('s-voice').onchange = function () { this.closest('.voice-check').classList.toggle('active', this.checked); }; $('export-btn').onclick = function () { S.exportJSON(state); toast(lang() === 'en-US' ? 'Backup exported.' : '已导出备份'); }; $('import-btn').onclick = function () { $('import-file').click(); }; $('import-file').onchange = importFile; $('reset-sample').onclick = function () { showConfirm(lang() === 'en-US' ? 'Restore sample library' : '恢复示例数据', lang() === 'en-US' ? 'Update built-in activities and keep custom ones?' : '更新内置活动并保留自定义活动，确定吗？', function () { state = S.resetSample(state); save(); closeModal('settings-modal'); applyI18n(); toast(lang() === 'en-US' ? 'Built-in library restored; custom activities kept.' : '已更新内置活动，自定义活动已保留'); }); }; $('clear-all').onclick = function () { showConfirm(lang() === 'en-US' ? 'Clear all activities' : '清空全部活动', lang() === 'en-US' ? 'Delete all activities?' : '将删除全部活动，确定吗？', function () { state.activities = []; save(); renderLibrary(); closeModal('settings-modal'); }); }; $('confirm-ok').onclick = function () { closeModal('confirm-modal'); if (confirmCallback) { var cb = confirmCallback; confirmCallback = null; cb(); } }; $('confirm-cancel').onclick = function () { closeModal('confirm-modal'); confirmCallback = null; };
   }
-
+  function init() { var res = S.loadState(); state = res.state; inMemory = res.inMemory; corrupt = res.corrupt; renderBanner(); applyI18n(); renderEmojiPop(); bindEvents(); showView('recommend'); if ('speechSynthesis' in window) { voices = window.speechSynthesis.getVoices() || []; window.speechSynthesis.onvoiceschanged = function () { voices = window.speechSynthesis.getVoices() || []; }; } }
   init();
 })();

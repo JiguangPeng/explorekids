@@ -1,7 +1,7 @@
 {
-  "name": "游戏决策机 · 今天玩什么",
-  "short_name": "游戏决策机",
-  "description": "帮派派从家里的玩具、桌游、绘本、手工里挑一件好玩的事",
+  "name": "游戏决策机 · Game Picker",
+  "short_name": "Game Picker",
+  "description": "帮小朋友从家里的活动中挑一件好玩的事 · Pick a fun activity to do",
   "lang": "zh-CN",
   "start_url": "./index.html",
   "scope": "./",

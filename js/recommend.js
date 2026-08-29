@@ -6,36 +6,17 @@
   'use strict';
   var NS = (window.GamePicker = window.GamePicker || {});
 
-  /* 时长区间 */
-  var DURATION = { short: 15, medium: 30 };
-
   /**
    * 按条件过滤活动
    * @param {Array} activities 全部活动
    * @param {Object} options
    *   - categoryIds: string[]（空/缺省 = 全部）
-   *   - duration: 'short'|'medium'|'long'|null
-   *   - energy: '安静'|'适中'|'活跃'|null
-   *   - players: '独自'|'亲子'|'多人'|null
-   *   - indoorOutdoor: '室内'|'户外'|'皆可'|null
    *   - favoriteOnly: boolean
    */
   function filter(activities, options) {
     options = options || {};
     return activities.filter(function (a) {
       if (options.categoryIds && options.categoryIds.length && options.categoryIds.indexOf(a.categoryId) === -1) return false;
-      if (options.energy && a.energyLevel !== options.energy) return false;
-      if (options.players && a.players !== options.players) return false;
-      // 「皆可」的活动匹配任意选择；选择「皆可」则不限制
-      if (options.indoorOutdoor && options.indoorOutdoor !== '皆可' &&
-          a.indoorOutdoor !== options.indoorOutdoor && a.indoorOutdoor !== '皆可') return false;
-      if (options.duration) {
-        if (a.durationMinutes == null) return false; // 未设置时长的活动不参与时长筛选
-        var d = a.durationMinutes;
-        if (options.duration === 'short' && d > DURATION.short) return false;
-        if (options.duration === 'medium' && (d <= DURATION.short || d > DURATION.medium)) return false;
-        if (options.duration === 'long' && d <= DURATION.medium) return false;
-      }
       if (options.favoriteOnly && !a.favorite) return false;
       return true;
     });
