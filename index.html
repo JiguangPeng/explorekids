@@ -102,10 +102,14 @@
 
     <div class="chat-filter-wrap">
       <div class="chat-filter-head">
-        <span id="chat-category-label">选择话题</span>
+        <button id="chat-toggle-categories" class="chat-filter-toggle" type="button" aria-expanded="false" aria-controls="chat-category-panel">
+          <span aria-hidden="true">🎛️</span><span id="chat-toggle-label">选择话题</span><span id="chat-selected-label" class="chat-selected-label">全部话题</span><span id="chat-toggle-chevron" aria-hidden="true">⌄</span>
+        </button>
         <button id="chat-clear-filters" class="chat-clear" type="button">全部话题</button>
       </div>
-      <div id="chat-categories" class="chips chat-chips"></div>
+      <div id="chat-category-panel" hidden>
+        <div id="chat-categories" class="chips chat-chips"></div>
+      </div>
     </div>
 
     <div class="chat-pick-area">
@@ -151,7 +155,7 @@
 
     <aside class="chat-tip">
       <span aria-hidden="true">🫧</span>
-      <p id="chat-tip-text">小提示：孩子不想回答时，可以先分享大人自己的答案，或者换一张。</p>
+      <div class="chat-tip-body"><p id="chat-tip-text">小提示：孩子不想回答时，可以先分享大人自己的答案，或者换一张。</p><div id="chat-tip-dots" class="chat-tip-dots" aria-hidden="true"></div></div>
     </aside>
 
     <footer class="chat-sources">
