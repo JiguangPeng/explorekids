@@ -492,6 +492,8 @@ textarea.clay-input { resize: vertical; min-height: 70px; }
 .chat-chips { padding-top: 14px; animation: chat-panel-in .25s var(--spring); }
 @keyframes chat-panel-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 .chat-clear { border: 0; background: transparent; color: var(--text-soft); text-decoration: underline; cursor: pointer; font: inherit; }
+.chat-category-panel { padding-top: 12px; }
+#chat-category-panel .chat-clear { display: block; margin: 8px 0 2px auto; padding: 6px 2px; }
 .chat-category-chip { background: color-mix(in srgb, var(--chip-color) 28%, var(--cream)); }
 .chat-category-chip.active { background: var(--chip-color); color: var(--text); }
 .chat-pick-area { display: flex; justify-content: center; margin: 8px 0 24px; }
@@ -500,8 +502,13 @@ textarea.clay-input { resize: vertical; min-height: 70px; }
 .chat-pick-emoji { font-size: 28px; }
 .chat-pick-btn.is-dealing .chat-pick-emoji { animation: card-deal .65s var(--spring); }
 @keyframes card-deal { 0% { transform: rotate(0) scale(1); } 40% { transform: rotate(-12deg) scale(1.18); } 100% { transform: rotate(0) scale(1); } }
-.chat-card { max-width: 640px; margin: 0 auto 24px; padding: 28px 28px 24px; border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--outer), var(--inner-hi), var(--inner-lo); animation: chat-card-in .5s var(--spring); transform-style: preserve-3d; backface-visibility: hidden; transition: transform .36s var(--spring), opacity .25s ease; }
-.chat-card.is-flipping { transform: perspective(900px) rotateY(88deg) scale(.97); opacity: .3; }
+.chat-card { max-width: 640px; margin: 0 auto 24px; padding: 28px 28px 24px; border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--outer), var(--inner-hi), var(--inner-lo); animation: chat-card-in .5s var(--spring); }
+.chat-card.is-flipping { animation: chat-card-deal .62s var(--spring); }
+@keyframes chat-card-deal {
+  0% { opacity: .55; transform: translateY(10px) rotate(-1.8deg) scale(.985); filter: blur(1px); }
+  42% { opacity: .85; transform: translateY(-5px) rotate(1deg) scale(1.012); filter: blur(.25px); }
+  100% { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); }
+}
 @keyframes chat-card-in { from { opacity: 0; transform: translateY(12px) rotate(-1deg) scale(.98); } to { opacity: 1; transform: none; } }
 .chat-card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
 .chat-card-emoji { width: 70px; height: 70px; border-radius: 24px; font-size: 36px; background: var(--lavender); }
