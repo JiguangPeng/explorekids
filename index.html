@@ -18,11 +18,11 @@
 
 <header class="topbar">
   <div class="logo">
-    <span class="logo-emoji clay-orb">🧸</span>
     <span class="logo-text" id="logo-text">游戏决策机</span>
   </div>
   <nav class="tabs" aria-label="主导航">
     <button class="tab active" data-view="recommend" aria-current="page" id="tab-recommend">🎲 推荐</button>
+    <button class="tab" data-view="chat" id="tab-chat">💬 聊聊天</button>
     <button class="tab" data-view="library" id="tab-library">📦 活动库</button>
   </nav>
   <div class="topbar-actions">
@@ -90,6 +90,83 @@
     </div>
   </section>
 
+  <!-- ============ 聊天话题视图 ============ -->
+  <section id="view-chat" class="view">
+    <div class="chat-greeting">
+      <div class="chat-mascot clay-orb">💬</div>
+      <div>
+        <h1 id="chat-title">我们聊点什么呢？</h1>
+        <p class="subtitle" id="chat-subtitle">没有标准答案，认真听彼此说就很好～</p>
+      </div>
+    </div>
+
+    <div class="chat-filter-wrap">
+      <div class="chat-filter-head">
+        <span id="chat-category-label">选择话题</span>
+        <button id="chat-clear-filters" class="chat-clear" type="button">全部话题</button>
+      </div>
+      <div id="chat-categories" class="chips chat-chips"></div>
+    </div>
+
+    <div class="chat-pick-area">
+      <button id="chat-pick-btn" class="clay-btn chat-pick-btn" type="button">
+        <span class="chat-pick-emoji">🎴</span>
+        <span id="chat-pick-label">抽一张聊天卡</span>
+      </button>
+    </div>
+
+    <div id="chat-empty" class="empty-pool" hidden>
+      <p id="chat-empty-text">这个分类暂时没有话题，试试其他分类吧～</p>
+    </div>
+
+    <article id="chat-card" class="chat-card" hidden aria-live="polite">
+      <div class="chat-card-top">
+      <div id="chat-card-emoji" class="chat-card-emoji clay-orb">🌙</div>
+        <div id="chat-card-badge" class="chat-topic-badge">睡前入梦</div>
+      </div>
+      <div id="chat-card-meta" class="chat-card-meta"></div>
+      <p id="chat-card-prompt" class="chat-prompt"></p>
+      <div id="chat-thinking-prompt" class="chat-thinking-prompt" hidden></div>
+      <div id="chat-followup-block" class="chat-followup-block">
+        <h2 id="chat-followup-title">可以接着问</h2>
+        <div id="chat-followups" class="chat-followups"></div>
+      </div>
+      <div id="chat-fact-block" class="chat-fact" hidden>
+        <div class="chat-fact-title" id="chat-fact-title">💡 小知识</div>
+        <p id="chat-fact-text"></p>
+      </div>
+      <div id="chat-hint-block" class="chat-hint" hidden>
+        <div class="chat-fact-title" id="chat-hint-title">🧩 思路提示</div>
+        <p id="chat-hint-text"></p>
+      </div>
+      <div id="chat-answer-block" class="chat-answer" hidden>
+        <div class="chat-fact-title" id="chat-answer-title">✅ 一种可能的答案</div>
+        <p id="chat-answer-text"></p>
+      </div>
+      <div class="chat-card-actions">
+        <button id="chat-answer-btn" class="clay-btn chat-answer-btn" type="button" hidden>💡 查看答案</button>
+        <button id="chat-reroll-btn" class="clay-btn primary" type="button">🔄 换一个</button>
+      </div>
+    </article>
+
+    <aside class="chat-tip">
+      <span aria-hidden="true">🫧</span>
+      <p id="chat-tip-text">小提示：孩子不想回答时，可以先分享大人自己的答案，或者换一张。</p>
+    </aside>
+
+    <footer class="chat-sources">
+      <details>
+        <summary id="chat-sources-title">内容编排参考</summary>
+        <p id="chat-sources-note">话题为原创儿童化改写，参考以下亲子沟通与儿童科普资源：</p>
+        <div class="chat-source-links">
+          <a href="https://www.unicef.org/parenting/child-care/9-tips-for-better-communication" target="_blank" rel="noopener noreferrer">UNICEF Parenting</a>
+          <a href="https://www.kidsmentalhealthfoundation.org/mental-health-resources/starting-conversations" target="_blank" rel="noopener noreferrer">Kids Mental Health Foundation</a>
+          <a href="https://spaceplace.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA Space Place</a>
+        </div>
+      </details>
+    </footer>
+  </section>
+
   <!-- ============ 活动库 / 管理视图 ============ -->
   <section id="view-library" class="view">
     <button class="clay-btn primary lib-add-btn" id="open-form">➕ 添加活动</button>
@@ -126,8 +203,9 @@
       <input type="hidden" id="f-id">
       <div class="form-row name-icon">
         <div class="emoji-pick">
-          <button type="button" id="emoji-trigger" class="emoji-trigger" title="选择图标">🧸</button>
-          <div id="emoji-pop" class="emoji-pop" hidden></div>
+          <input type="text" id="f-emoji" class="emoji-input" value="🧸" inputmode="text" autocomplete="off" maxlength="8" aria-label="选择 Emoji" title="点击后使用系统输入法选择 Emoji">
+          <button type="button" id="emoji-trigger" hidden aria-hidden="true"></button>
+          <div id="emoji-pop" hidden aria-hidden="true"></div>
         </div>
         <input type="text" id="f-name" class="clay-input" placeholder="活动名称（例如：磁力片搭城堡）" maxlength="60" aria-label="中文名称" required>
       </div>
@@ -235,6 +313,8 @@
 
 <script src="js/storage.js"></script>
 <script src="js/recommend.js"></script>
+<script src="js/chat-data.js"></script>
+<script src="js/chat.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -103,7 +103,14 @@
       return item;
     });
   }
-  function defaultState() { return { schemaVersion: 1, settings: { userName: '小朋友', avoidRecentCount: 3, categories: categories(), catalogVersion: CATALOG_VERSION, language: 'zh-CN', voiceEnabled: true }, activities: sampleActivities() }; }
+  function defaultChatState() { return { lastTopicId: null, seenIds: [] }; }
+  function normalizeChatState(chat) {
+    chat = chat && typeof chat === 'object' ? chat : {};
+    var seen = {}, ids = [];
+    (Array.isArray(chat.seenIds) ? chat.seenIds : []).forEach(function (id) { id = String(id || ''); if (id && !seen[id]) { seen[id] = true; ids.push(id); } });
+    return { lastTopicId: typeof chat.lastTopicId === 'string' && chat.lastTopicId ? chat.lastTopicId : null, seenIds: ids.slice(-120) };
+  }
+  function defaultState() { return { schemaVersion: 1, settings: { userName: '小朋友', avoidRecentCount: 3, categories: categories(), catalogVersion: CATALOG_VERSION, language: 'zh-CN', voiceEnabled: true }, activities: sampleActivities(), chat: defaultChatState() }; }
   function canonicalCategoryId(value) { var map = { toy: 'toy', board: 'board', book: 'book', craft: 'craft', play: 'game', game: 'game', outdoor: 'fitness', other: 'game', learning: 'learning', fitness: 'fitness' }; return map[value] || (DEFAULT_CATEGORIES.some(function (c) { return c.id === value; }) ? value : 'game'); }
   function normalizeActivity(a, id) {
     var oldName = String(a.name || '未命名活动');
@@ -116,7 +123,7 @@
     return act({ id: id || a.id || (meta ? 'builtin-' + catalogId : genId()), catalogId: catalogId, source: source, iconType: a.iconType, iconKey: a.iconKey, nameZh: nameZh, nameEn: String(a.nameEn || oldName).slice(0, 80), categoryId: canonicalCategoryId(a.categoryId), emoji: String(a.emoji || (meta && meta.fallback) || '🎈').slice(0, 4), descriptionZh: String(a.descriptionZh || oldDesc), descriptionEn: String(a.descriptionEn || oldDesc), materialsZh: String(a.materialsZh || oldMat), materialsEn: String(a.materialsEn || oldMat), favorite: !!a.favorite, lastPickedAt: typeof a.lastPickedAt === 'number' ? a.lastPickedAt : null, pickCount: a.pickCount, lastPlayedAt: typeof a.lastPlayedAt === 'number' ? a.lastPlayedAt : null, playCount: a.playCount, createdAt: typeof a.createdAt === 'number' ? a.createdAt : now(), updatedAt: typeof a.updatedAt === 'number' ? a.updatedAt : now() });
   }
   function normalizeState(data) {
-    data = data || {}; var settings = data.settings || {}; var normalizedName = typeof settings.userName === 'string' ? settings.userName : '小朋友'; if (normalizedName === '派派') normalizedName = '小朋友'; var out = { schemaVersion: 1, settings: { userName: normalizedName, avoidRecentCount: clampInt(settings.avoidRecentCount, 1, 10, 3), categories: categories(), catalogVersion: CATALOG_VERSION, language: settings.language === 'en-US' ? 'en-US' : 'zh-CN', voiceEnabled: typeof settings.voiceEnabled === 'boolean' ? settings.voiceEnabled : true }, activities: [] }; var seen = {};
+    data = data || {}; var settings = data.settings || {}; var normalizedName = typeof settings.userName === 'string' ? settings.userName : '小朋友'; if (normalizedName === '派派') normalizedName = '小朋友'; var out = { schemaVersion: 1, settings: { userName: normalizedName, avoidRecentCount: clampInt(settings.avoidRecentCount, 1, 10, 3), categories: categories(), catalogVersion: CATALOG_VERSION, language: settings.language === 'en-US' ? 'en-US' : 'zh-CN', voiceEnabled: typeof settings.voiceEnabled === 'boolean' ? settings.voiceEnabled : true }, activities: [], chat: normalizeChatState(data.chat) }; var seen = {};
     (Array.isArray(data.activities) ? data.activities : []).forEach(function (a) { if (!a || typeof a !== 'object') return; var id = String(a.id || genId()); if (seen[id]) return; seen[id] = true; out.activities.push(normalizeActivity(a, id)); }); return out;
   }
   function storageAvailable() { try { var k = '__gp_test__'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; } catch (e) { return false; } }
@@ -132,6 +139,7 @@
       fresh.settings.voiceEnabled = typeof currentState.settings.voiceEnabled === 'boolean' ? currentState.settings.voiceEnabled : fresh.settings.voiceEnabled;
       fresh.settings.language = currentState.settings.language === 'en-US' ? 'en-US' : 'zh-CN';
     }
+    fresh.chat = normalizeChatState(currentState && currentState.chat);
     fresh.activities = fresh.activities.concat(customs);
     return fresh;
   }
@@ -162,6 +170,7 @@
     fresh.settings.avoidRecentCount = clampInt(settings.avoidRecentCount, 1, 10, fresh.settings.avoidRecentCount);
     fresh.settings.voiceEnabled = typeof settings.voiceEnabled === 'boolean' ? settings.voiceEnabled : fresh.settings.voiceEnabled;
     fresh.settings.language = settings.language === 'en-US' ? 'en-US' : 'zh-CN';
+    fresh.chat = normalizeChatState(data.chat);
     return fresh;
   }
   function loadState() {
@@ -173,5 +182,5 @@
   }
   function exportJSON(state) { var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); var url = URL.createObjectURL(blob), a = document.createElement('a'), d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }; a.href = url; a.download = '游戏决策机备份-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function () { URL.revokeObjectURL(url); }, 1000); }
   function importJSON(text) { try { var data = JSON.parse(text); if (!data || typeof data !== 'object' || !Array.isArray(data.activities)) return { ok: false, error: '文件格式不正确：缺少 activities 列表' }; return { ok: true, state: normalizeState(data) }; } catch (e) { return { ok: false, error: '无法解析 JSON：' + e.message }; } }
-  NS.storage = { KEY: KEY, CATALOG_VERSION: CATALOG_VERSION, DEFAULT_CATEGORIES: DEFAULT_CATEGORIES, BUILTIN_META: BUILTIN_META, genId: genId, now: now, defaultState: defaultState, normalizeState: normalizeState, loadState: loadState, saveState: saveState, exportJSON: exportJSON, importJSON: importJSON, resetSample: resetSample, storageAvailable: storageAvailable };
+  NS.storage = { KEY: KEY, CATALOG_VERSION: CATALOG_VERSION, DEFAULT_CATEGORIES: DEFAULT_CATEGORIES, BUILTIN_META: BUILTIN_META, genId: genId, now: now, defaultState: defaultState, defaultChatState: defaultChatState, normalizeState: normalizeState, loadState: loadState, saveState: saveState, exportJSON: exportJSON, importJSON: importJSON, resetSample: resetSample, storageAvailable: storageAvailable };
 })();
