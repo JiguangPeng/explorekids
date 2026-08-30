@@ -18,7 +18,7 @@ GitHub 仓库：<https://github.com/JiguangPeng/explorekids>
    # 浏览器访问 http://localhost:8000
    ```
 
-首次打开会自动载入 30 条中英双语示例活动，覆盖学习、玩具、桌游、绘本、手工、游戏和体能七类。可在设置中切换中文 / English。
+首次打开会自动载入 30 条中英双语示例活动，覆盖学习、玩具、桌游、绘本、手工、角色游戏和运动七类。可在设置中切换中文 / English。
 
 ## 功能
 
@@ -30,28 +30,28 @@ GitHub 仓库：<https://github.com/JiguangPeng/explorekids>
 | ➕ 添加活动 | 中文名称、English name、双语玩法与材料、类别、图标和收藏 |
 | ⚙️ 设置 | 昵称、语言、语音开关、试听、手机端添加到桌面说明、导出/导入 JSON 备份、更新内置活动、清空 |
 
-## 数据存储与备份
+## 数据存储与维护
 
-- 所有数据保存在浏览器 `localStorage` 的 `gamepicker.v1` 键下，刷新/关闭后仍在（同一浏览器）。
+- 内置目录与用户状态分离：`js/play-data.js`、`js/chat-data.js`、`js/outing-data.js` 负责可人工维护的内容；浏览器只在 `localStorage` 的 `explorekids.state.v3` 键下保存用户增量状态。
+- v3 状态只保存自定义内容、内置内容覆盖、删除标记、收藏和抽取统计，不重复保存完整内置目录，减少存储体积并避免内容漂移。
+- 旧版 `gamepicker.v2` / `gamepicker.v1` 会在首次加载时自动迁移到 v3；迁移后不会重复拼接旧活动。
+- `localStorage` 按来源隔离：`file://`、localhost 和 GitHub Pages 的数据不会自动共享。
 - 隐私模式或存储被禁用时会自动降级为内存态，并显示黄色提示条。
 - 数据损坏时会自动备份到 `gamepicker.v1.corrupt` 并回退到示例数据。
-- **建议定期「⚙️ → 导出备份」** 生成 JSON 文件，换设备或浏览器时用「导入备份」还原。
 - 若要安装为独立 App，请通过 `http://` 或 `https://` 网址访问，再按设置页中的 iPhone / Android 步骤添加到桌面；直接双击 `file://` 文件不能完整安装 PWA。
-- “恢复示例数据”只更新内置活动，不删除自定义活动。
 
-## 双语与语音
+## 双语界面
 
 - 默认使用中文，可在「设置 → 语言 / Language」切换 English。
 - 活动名称、玩法说明、材料、类别和界面提示均提供中英文版本。
-- 语音使用浏览器原生 `speechSynthesis`，会根据当前语言自动选择中文或英文 voice；可在设置中试听。
-- 不同浏览器和系统提供的 voice 不同，若没有匹配音色会自动回退到系统默认音色。
 
 ## 文件结构
 
 ```
 index.html          页面骨架与弹窗
 styles.css          黏土质感设计系统 + 全部动画
-  js/storage.js       数据层（localStorage、种子数据、导入导出、归一化）
+  js/storage.js       数据层（v3 增量状态、旧版迁移、归一化）
+  js/play-data.js     玩一玩内置目录（可人工维护）
   js/recommend.js     推荐引擎（纯函数：过滤 + 加权随机 + 避免近期重复）
   js/chat-data.js     聊天话题目录（约 72 条中英双语卡片，含逻辑思维题）
   js/chat.js          聊天抽题逻辑（筛选 + 避免连续重复）

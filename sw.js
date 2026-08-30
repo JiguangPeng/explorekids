@@ -9,6 +9,7 @@ const ASSETS = [
   './styles.css',
   './manifest.json',
   './js/storage.js',
+  './js/play-data.js',
   './js/chat-data.js',
   './js/outing-data.js',
   './js/recommend.js',
