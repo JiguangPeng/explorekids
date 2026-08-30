@@ -32,7 +32,7 @@ GitHub 仓库：<https://github.com/JiguangPeng/explorekids>
 
 ## 数据存储与维护
 
-- 内置目录与用户状态分离：`js/play-data.js`、`js/chat-data.js`、`js/outing-data.js` 负责可人工维护的内容；浏览器只在 `localStorage` 的 `explorekids.state.v3` 键下保存用户增量状态。
+- 内置目录与用户状态分离：`js/play-data.js`、`js/chat-data.js`、`js/outing-data.js` 负责可人工维护的内容；浏览器继续使用原有 `localStorage` 的 `gamepicker.v2` 键保存 v3 用户增量状态。
 - v3 状态只保存自定义内容、内置内容覆盖、删除标记、收藏和抽取统计，不重复保存完整内置目录，减少存储体积并避免内容漂移。
 - 旧版 `gamepicker.v2` / `gamepicker.v1` 会在首次加载时自动迁移到 v3；迁移后不会重复拼接旧活动。
 - `localStorage` 按来源隔离：`file://`、localhost 和 GitHub Pages 的数据不会自动共享。
