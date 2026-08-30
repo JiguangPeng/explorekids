@@ -537,6 +537,39 @@ textarea.clay-input { resize: vertical; min-height: 70px; }
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
+/* 探索派双层顶栏与模块主题 */
+.brand-row { width:100%; justify-content:flex-start; }
+.logo-mark.logo-image { width:40px; height:40px; object-fit:contain; border-radius:14px; padding:3px; }
+.brand-slogan { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.settings-btn { margin-left:auto; }
+.nav-row { justify-content:center; }
+.nav-row .tabs { width:min(560px,100%); justify-content:space-between; }
+.nav-row .tab { flex:1; }
+body[data-module="play"] { --module-accent: var(--peach); }
+body[data-module="chat"] { --module-accent: var(--lavender); }
+body[data-module="outing"] { --module-accent: var(--mint); }
+.tab.active { background:var(--module-accent,var(--peach)); }
+.clay-btn.primary, .hero-btn { background:var(--module-accent,var(--peach)); }
+.manage-trigger { background:transparent; border:1px solid rgba(107,79,63,.16); box-shadow:none; color:var(--text-soft); }
+.outing-route-icon { width:82px; height:82px; margin:0 auto 16px; border-radius:26px; display:grid; place-items:center; font-size:42px; color:#4b927f; background:linear-gradient(145deg,#d9f8e9,#a8e6cf); box-shadow:var(--outer-sm),var(--inner-hi); }
+.fx-particle { position:fixed; z-index:400; pointer-events:none; font-size:20px; animation:particle-fly .8s var(--spring) forwards; color:var(--module-accent,var(--peach)); }
+@keyframes particle-fly { from { opacity:0; transform:translate(0,0) scale(.4) rotate(0); } 20% { opacity:1; } to { opacity:0; transform:translate(var(--dx),var(--dy)) scale(1.15) rotate(180deg); } }
+.chat-tips { max-width:460px; margin:18px auto 0; padding:12px 16px; border-radius:18px; background:rgba(195,177,225,.24); color:#6d5a86; font-size:13px; text-align:center; }
+.manager-icon .activity-icon-svg { width:36px; height:36px; }
+.manager-actions { flex-direction:column; }
+@media (max-width:430px) {
+  .topbar { padding:10px 12px; }
+  .logo { gap:7px; font-size:18px; }
+  .logo-mark.logo-image { width:34px; height:34px; }
+  .brand-slogan { font-size:11px; }
+  .settings-btn { width:34px; height:34px; border-radius:12px; }
+  .tabs { padding:4px; gap:3px; }
+  .tab { padding:8px 5px; font-size:13px; }
+  .nav-row { margin-top:6px; }
+  .module-tools { margin-top:14px; }
+  .manage-trigger { padding:7px 10px; font-size:12px; }
+}
+
 /* --------------------------------------------------------------------------
    聊天话题
    -------------------------------------------------------------------------- */

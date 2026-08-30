@@ -2,17 +2,21 @@
    Service Worker · 离线缓存 + 可安装（PWA）
    策略：网络优先、离线回退缓存；安装时预缓存应用外壳
    ========================================================================== */
-const CACHE = 'gamepicker-v2';
+const CACHE = 'explorekids-v3';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './manifest.json',
   './js/storage.js',
+  './js/chat-data.js',
+  './js/outing-data.js',
   './js/recommend.js',
   './js/app.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/icon-180.png',
+  './icons/icon-source.svg',
   './assets/icons/literacy.svg',
   './assets/icons/english-learning.svg',
   './assets/icons/lego-animal-park.svg',
