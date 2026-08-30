@@ -544,8 +544,8 @@ textarea.clay-input { resize: vertical; min-height: 70px; }
 .brand-slogan { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .settings-btn { margin-left:auto; }
 .nav-row { justify-content:center; }
-.nav-row .tabs { width:auto; flex:0 0 auto; justify-content:center; }
-.nav-row .tab { flex:0 0 auto; }
+.nav-row .tabs { width:auto; flex:0 0 auto; justify-content:center; gap:12px; padding:8px 10px; }
+.nav-row .tab { flex:0 0 auto; padding:12px 22px; font-size:17px; }
 body[data-module="play"] { --module-accent: var(--peach); }
 body[data-module="chat"] { --module-accent: var(--lavender); }
 body[data-module="outing"] { --module-accent: var(--mint); }
@@ -566,8 +566,8 @@ body[data-module="outing"] { --module-accent: var(--mint); }
   .logo-text { font-size:21px; }
   .brand-slogan { font-size:11px; }
   .settings-btn { width:34px; height:34px; border-radius:12px; }
-  .tabs { padding:4px; gap:3px; }
-  .tab { padding:8px 5px; font-size:13px; }
+  .nav-row .tabs { gap:7px; padding:6px 7px; max-width:100%; }
+  .nav-row .tab { padding:10px 11px; font-size:14px; }
   .nav-row { margin-top:6px; }
   .module-tools { margin-top:14px; }
   .manage-trigger { padding:7px 10px; font-size:12px; }
