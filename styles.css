@@ -539,18 +539,20 @@ textarea.clay-input { resize: vertical; min-height: 70px; }
 
 /* 探索派双层顶栏与模块主题 */
 .brand-row { width:100%; justify-content:flex-start; }
-.logo-mark.logo-image { width:40px; height:40px; object-fit:contain; border-radius:14px; padding:3px; }
+.logo-mark.logo-image { display:grid; width:48px; height:48px; object-fit:contain; border-radius:16px; padding:3px; }
+.logo-text { font-size:26px; letter-spacing:.04em; }
 .brand-slogan { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .settings-btn { margin-left:auto; }
 .nav-row { justify-content:center; }
-.nav-row .tabs { width:min(560px,100%); justify-content:space-between; }
-.nav-row .tab { flex:1; }
+.nav-row .tabs { width:auto; flex:0 0 auto; justify-content:center; }
+.nav-row .tab { flex:0 0 auto; }
 body[data-module="play"] { --module-accent: var(--peach); }
 body[data-module="chat"] { --module-accent: var(--lavender); }
 body[data-module="outing"] { --module-accent: var(--mint); }
 .tab.active { background:var(--module-accent,var(--peach)); }
 .clay-btn.primary, .hero-btn { background:var(--module-accent,var(--peach)); }
-.manage-trigger { background:transparent; border:1px solid rgba(107,79,63,.16); box-shadow:none; color:var(--text-soft); }
+.manage-trigger { background:transparent; border:1px solid rgba(107,79,63,.13); box-shadow:none; color:var(--text-soft); font-weight:600; }
+.settings-btn { background:transparent; box-shadow:none; color:var(--text-faint); opacity:.72; }
 .outing-route-icon { width:82px; height:82px; margin:0 auto 16px; border-radius:26px; display:grid; place-items:center; font-size:42px; color:#4b927f; background:linear-gradient(145deg,#d9f8e9,#a8e6cf); box-shadow:var(--outer-sm),var(--inner-hi); }
 .fx-particle { position:fixed; z-index:400; pointer-events:none; font-size:20px; animation:particle-fly .8s var(--spring) forwards; color:var(--module-accent,var(--peach)); }
 @keyframes particle-fly { from { opacity:0; transform:translate(0,0) scale(.4) rotate(0); } 20% { opacity:1; } to { opacity:0; transform:translate(var(--dx),var(--dy)) scale(1.15) rotate(180deg); } }
@@ -560,7 +562,8 @@ body[data-module="outing"] { --module-accent: var(--mint); }
 @media (max-width:430px) {
   .topbar { padding:10px 12px; }
   .logo { gap:7px; font-size:18px; }
-  .logo-mark.logo-image { width:34px; height:34px; }
+  .logo-mark.logo-image { display:grid; width:38px; height:38px; }
+  .logo-text { font-size:21px; }
   .brand-slogan { font-size:11px; }
   .settings-btn { width:34px; height:34px; border-radius:12px; }
   .tabs { padding:4px; gap:3px; }
