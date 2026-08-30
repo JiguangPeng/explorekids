@@ -231,12 +231,10 @@ button { font-family: inherit; }
 }
 .play-result-card { animation: result-rise .32s var(--spring); }
 .result-jelly { animation: result-jelly .58s var(--spring); }
-.chat-card-deal { animation: chat-flip .62s var(--spring); }
 .outing-result-in { animation: outing-arrive .72s var(--spring); }
 .compass-spin { animation: compass-turn .72s var(--spring); }
 @keyframes result-rise { from { opacity:0; transform:scale(.94) translateY(8px); } to { opacity:1; transform:none; } }
 @keyframes result-jelly { 0% { transform:scale(.94) rotate(-2deg); } 45% { transform:scale(1.04) rotate(1deg); } 75% { transform:scale(.98) rotate(-.5deg); } 100% { transform:scale(1) rotate(0); } }
-@keyframes chat-flip { 0% { opacity:.35; transform:perspective(700px) rotateY(-85deg) translateY(8px); } 55% { opacity:.9; transform:perspective(700px) rotateY(10deg) translateY(-3px); } 100% { opacity:1; transform:perspective(700px) rotateY(0) translateY(0); } }
 @keyframes outing-arrive { from { opacity:0; transform:translateY(24px) scale(.97); } to { opacity:1; transform:none; } }
 @keyframes compass-turn { from { transform:rotate(-25deg) scale(.8); } 65% { transform:rotate(12deg) scale(1.08); } to { transform:rotate(0) scale(1); } }
 
@@ -559,6 +557,24 @@ body[data-module="outing"] { --module-accent: var(--mint); }
 .chat-tips { max-width:460px; margin:18px auto 0; padding:12px 16px; border-radius:18px; background:rgba(195,177,225,.24); color:#6d5a86; font-size:13px; text-align:center; }
 .manager-icon .activity-icon-svg { width:36px; height:36px; }
 .manager-actions { flex-direction:column; }
+
+/* v1 interaction refresh: centered module rhythm and one clear chat deal state */
+.module-head { max-width:720px; margin:0 auto; justify-content:center; text-align:center; }
+.module-head .greeting, .module-head .chat-greeting { width:100%; justify-content:center; flex-direction:column; gap:10px; margin:8px 0 0; }
+.module-head .greeting > div:last-child, .module-head .chat-greeting > div:last-child { max-width:620px; }
+.module-tools { max-width:720px; margin:18px auto 14px; justify-content:center; gap:12px; padding:8px 12px; border-radius:999px; background:rgba(255,249,251,.7); box-shadow:var(--groove); }
+.tool-left { display:flex; justify-content:center; }
+.manage-trigger { min-height:40px; border-color:rgba(107,79,63,.16); }
+.chat-card.is-dealing { animation:chat-deal-v1 .62s var(--spring); transform-origin:50% 10%; }
+.chat-card.is-dealing .chat-prompt { animation:chat-segment-in .3s ease both; }
+.chat-segment-in { animation:chat-segment-in .34s ease both; }
+@keyframes chat-deal-v1 { 0%{opacity:.35;transform:perspective(800px) rotateX(-14deg) translateY(16px) scale(.97)} 45%{opacity:.9;transform:perspective(800px) rotateX(5deg) translateY(-4px) scale(1.01)} 100%{opacity:1;transform:none} }
+@keyframes chat-segment-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+@media (max-width:640px) {
+  .module-head { padding-inline:8px; }
+  .module-tools { width:max-content; max-width:calc(100% - 16px); margin-top:14px; padding:6px 8px; }
+  .module-tools .clay-chip, .module-tools .manage-trigger { min-height:40px; }
+}
 @media (max-width:430px) {
   .topbar { padding:10px 12px; }
   .logo { gap:7px; font-size:18px; }
@@ -602,12 +618,6 @@ body[data-module="outing"] { --module-accent: var(--mint); }
 .chat-pick-btn.is-dealing .chat-pick-emoji { animation: card-deal .65s var(--spring); }
 @keyframes card-deal { 0% { transform: rotate(0) scale(1); } 40% { transform: rotate(-12deg) scale(1.18); } 100% { transform: rotate(0) scale(1); } }
 .chat-card { position: relative; max-width: 640px; margin: 0 auto 24px; padding: 28px 28px 24px; border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--outer), var(--inner-hi), var(--inner-lo); animation: chat-card-in .5s var(--spring); }
-.chat-card.is-flipping { animation: chat-card-deal .62s var(--spring); }
-@keyframes chat-card-deal {
-  0% { opacity: .55; transform: translateY(10px) rotate(-1.8deg) scale(.985); filter: blur(1px); }
-  42% { opacity: .85; transform: translateY(-5px) rotate(1deg) scale(1.012); filter: blur(.25px); }
-  100% { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); }
-}
 .chat-burst-spark { position: absolute; z-index: 3; left: 50%; top: 46%; color: #D3A9F2; font-size: 18px; font-weight: 900; pointer-events: none; opacity: 0; animation: chat-burst .9s ease-out var(--burst-delay) forwards; }
 .chat-burst-spark:nth-of-type(3n) { color: #FFBE72; }
 .chat-burst-spark:nth-of-type(3n + 1) { color: #78CFC2; }
