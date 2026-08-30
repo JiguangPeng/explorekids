@@ -564,7 +564,9 @@ body[data-module="outing"] { --module-accent: var(--mint); }
 .module-head .greeting > div:last-child, .module-head .chat-greeting > div:last-child { max-width:620px; }
 .module-tools { max-width:720px; margin:18px auto 14px; justify-content:center; gap:12px; padding:8px 12px; border-radius:999px; background:rgba(255,249,251,.7); box-shadow:var(--groove); }
 .tool-left { display:flex; justify-content:center; }
-.manage-trigger { min-height:40px; border-color:rgba(107,79,63,.16); }
+.module-tools { padding:0; border-radius:0; background:transparent; box-shadow:none; }
+.module-tools .clay-chip, .module-tools .manage-trigger { min-height:40px; padding:9px 14px; border:1px solid rgba(107,79,63,.16); border-radius:14px; background:transparent; box-shadow:none; color:var(--text-soft); font-weight:600; }
+.module-tools .clay-chip:hover, .module-tools .manage-trigger:hover { background:rgba(255,255,255,.45); }
 .chat-card.is-dealing { animation:chat-deal-v1 .62s var(--spring); transform-origin:50% 10%; }
 .chat-card.is-dealing .chat-prompt { animation:chat-segment-in .3s ease both; }
 .chat-segment-in { animation:chat-segment-in .34s ease both; }
