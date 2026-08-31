@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "探索派 · 亲子周末",
+  "name": "探索派 · 亲子时光",
   "short_name": "探索派",
-  "description": "玩一玩、聊聊天、去哪里：深圳亲子周末助手",
+  "description": "玩一玩、聊聊天、去哪里：亲子时光助手",
   "lang": "zh-CN",
   "start_url": "./",
   "scope": "./",

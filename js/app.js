@@ -11,13 +11,13 @@
   function isEn(){ return state && state.settings.language === 'en-US'; }
   function tr(zh,en){ return isEn() ? en : zh; }
   function applyLanguage(){
-    var en=isEn(); document.documentElement.lang=en?'en':'zh-CN'; document.title=en?'ExploreKids · Family Weekend':'探索派 · 亲子周末';
-    var slogan=document.querySelector('.brand-slogan'); if(slogan)slogan.textContent=tr('一起玩，一起聊，周末去探索','Play together, chat together, explore the weekend');
-    var nav=document.querySelectorAll('.tab'); if(nav.length){nav[0].textContent='🧸 '+tr('玩一玩','Play');nav[1].textContent='💬 '+tr('聊聊天','Chat');nav[2].textContent='🧭 '+tr('去哪里','Go out');}
+    var en=isEn(); document.documentElement.lang=en?'en':'zh-CN'; document.title=en?'ExploreKids · Family Time':'探索派 · 亲子时光';
+    var slogan=document.querySelector('.brand-slogan'); if(slogan)slogan.textContent=tr('一起玩，一起聊，一起探索','Play together, chat together, explore together');
+    var nav=document.querySelectorAll('.tab'); if(nav.length){nav[0].textContent='🧸 '+tr('玩一玩','Play');nav[1].textContent='💭 '+tr('聊聊天','Chat');nav[2].textContent='🧭 '+tr('去哪里','Go out');}
     $('open-settings').title=tr('设置','Settings'); $('open-settings').setAttribute('aria-label',tr('设置','Settings'));
     document.querySelector('#view-play h1').textContent=tr('现在玩什么？','What shall we play?'); document.querySelector('#view-play .subtitle').textContent=tr('点一下，让探索派帮你挑一个亲子活动～','Tap once and let ExploreKids pick a family activity.');
     document.querySelector('#view-chat h1').textContent=tr('我们聊点什么呢？','What shall we talk about?'); document.querySelector('#view-chat .subtitle').textContent=tr('没有标准答案，认真听彼此说就很好～','There is no perfect answer—listening is what matters.'); document.querySelector('#view-chat .chat-mascot').textContent='💭';
-    document.querySelector('#view-outing h1').textContent=tr('周末去哪里？','Where shall we go this weekend?'); document.querySelector('#view-outing .subtitle').textContent=tr('先从深圳市内和周边，挑一个轻松去处～','Pick an easy family destination in Shenzhen or nearby.');
+    document.querySelector('#view-outing h1').textContent=tr('想去哪里？','Where shall we go?'); document.querySelector('#view-outing .subtitle').textContent=tr('从深圳市内和周边，挑一个轻松去处～','Pick an easy family destination in Shenzhen or nearby.');
     document.querySelector('#play-pick .hero-btn-main').textContent=tr('开始','Start'); document.querySelector('#play-pick .hero-btn-sub').textContent=tr('点我抽一个','Pick one');
     document.querySelector('#outing-pick .hero-btn-main').textContent=tr('出发','Go'); document.querySelector('#outing-pick .hero-btn-sub').textContent=tr('帮我选个地方','Pick a place');
     $('chat-pick').innerHTML='<span class="chat-pick-emoji">🎴</span>'+tr('抽一张聊天卡','Draw a chat card'); $('chat-reroll').textContent='🔄 '+tr('换一个','Another one'); $('chat-answer').textContent='💡 '+tr('查看答案','Show answer');

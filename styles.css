@@ -561,6 +561,8 @@ body[data-module="outing"] { --module-accent: var(--mint); }
 /* v1 interaction refresh: centered module rhythm and one clear chat deal state */
 .module-head { max-width:720px; margin:0 auto; justify-content:center; text-align:center; }
 .module-head .greeting, .module-head .chat-greeting { width:100%; justify-content:center; flex-direction:column; gap:10px; margin:8px 0 0; }
+.module-head .mascot, .module-head .chat-mascot { display:none; }
+.outing-route-icon { display:none; }
 .module-head .greeting > div:last-child, .module-head .chat-greeting > div:last-child { max-width:620px; }
 .module-tools { max-width:720px; margin:18px auto 14px; justify-content:center; gap:12px; padding:8px 12px; border-radius:999px; background:rgba(255,249,251,.7); box-shadow:var(--groove); }
 .tool-left { display:flex; justify-content:center; }
