@@ -22,6 +22,7 @@ python3 -m http.server 8000
 
 - `js/play-data.js`：玩一玩目录
 - `js/chat-data.js`：聊天卡片目录
+- `js/chat-data-extra.js`：扩展聊天卡片目录（100 个聊天话题、50 个科普知识）
 - `js/outing-data.js`：深圳及周边地点目录
 - `js/storage.js`：v1 状态、增量覆盖、收藏、删除标记和统计
 
