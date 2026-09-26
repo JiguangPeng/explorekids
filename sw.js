@@ -2,7 +2,7 @@
    Service Worker · 离线缓存 + 可安装（PWA）
    策略：网络优先、离线回退缓存；安装时预缓存应用外壳
    ========================================================================== */
-const CACHE = 'explorekids-v6';
+const CACHE = 'explorekids-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './js/chat-data.js',
   './js/chat-data-extra.js',
   './js/outing-data.js',
+  './js/outing-enrich.js',
   './js/app.js',
   './icons/icon-192.png',
   './icons/icon-512.png',

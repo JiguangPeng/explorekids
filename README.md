@@ -24,6 +24,7 @@ python3 -m http.server 8000
 - `js/chat-data.js`：聊天卡片目录
 - `js/chat-data-extra.js`：扩展聊天卡片目录（100 个聊天话题、50 个科普知识）
 - `js/outing-data.js`：深圳及周边地点目录
+- `js/outing-enrich.js`：空泛地点的补充说明，以及后来增加的公共去处
 - `js/storage.js`：v1 状态、增量覆盖、收藏、删除标记和统计
 
 存储状态按模块隔离，包含 `customItems`、`overrides`、`deletedBuiltinIds`、`favorites`、`stats` 和 `lastPickedId`。浏览器存储不可用时自动使用内存状态；JSON 损坏时回退到新的默认目录。
@@ -32,8 +33,8 @@ python3 -m http.server 8000
 
 - 玩一玩：按分类随机抽取家庭活动，支持收藏和独立活动库管理。
 - 聊聊天：双语聊天卡、追问、小知识、思路提示和轻翻牌抽卡动效。
-- 去哪里：深圳市内与深圳周边地点，支持区域、类型、室内外和时长筛选，随机推荐和手机默认地图搜索。
-- 三个模块分别管理，管理面板支持搜索、新增、编辑、收藏和删除。
+- 去哪里：深圳市内与深圳周边地点，支持区域、类型、室内外、时长和最爱筛选，随机推荐和手机默认地图搜索。结果卡会跳过「公园」「商圈」这类空泛标签，显示具体玩法和出行笔记；深圳地点的地图搜索会带上所在区。
+- 三个模块分别管理，管理面板支持搜索、新增、编辑、收藏和删除。收藏可以在筛选里单独抽取。
 - 不包含导入 / 导出、最近推荐排除、预算字段和语音模块。
 
 ## 文件结构
@@ -44,7 +45,9 @@ styles.css          黏土质感设计系统、响应式布局和模块动效
 js/storage.js       explorekids.state.v1 数据层
 js/play-data.js     玩一玩内置目录
 js/chat-data.js     聊聊天内置目录
+js/chat-data-extra.js  扩展聊天卡
 js/outing-data.js   深圳及周边地点目录
+js/outing-enrich.js 空泛地点的补充说明，以及后来增加的公共去处
 js/app.js           推荐、筛选、管理、表单、语言和 PWA 交互
 icons/              SVG 源文件与 PWA PNG 图标
 assets/icons/       活动语义 SVG 图标
@@ -53,4 +56,6 @@ sw.js               PWA 离线缓存
 
 ## 手工维护目录
 
-内置内容使用稳定的 `id`，编辑目录文件后刷新页面即可看到新内容。用户对内置内容的编辑会写入 `overrides`，删除会写入 `deletedBuiltinIds`，因此不会把整份内置目录重复写进 localStorage。
+内置内容使用稳定的 `id`，编辑目录文件后刷新页面即可看到新内容。地点目录如果出现重复 id，读取时会按名称重新生成稳定 id，同名地点会合并，并保留更具体的出行笔记。用户对内置内容的编辑会写入 `overrides`，删除会写入 `deletedBuiltinIds`，因此不会把整份内置目录重复写进 localStorage。
+
+可用 `node test/storage.test.js` 检查 id 是否唯一，以及删除一条、收藏和改名能否正确存取。
